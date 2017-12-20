@@ -1,5 +1,5 @@
-#ifndef RECEIVERER_HPP
-#define RECEIVERER_HPP
+#ifndef RECEIVER_HPP
+#define RECEIVER_HPP
 
 #include "Nodes.hpp"
 #include <iostream>
@@ -11,21 +11,21 @@ using std::string;
 using std::ostream;
 using std::istream;
 
-class Receiverer
+class Receiver
     {
     private:
         vector<Deliverer*> list_of_deliverer;
-        
+
     public:
         void addDeliverer(Deliverer* deliverer);
         virtual void takeProduct(Product* product);
     };
 
-typedef struct receivererAndPrbability
+typedef struct receiverAndPrbability
     {
-    Receiverer* receiverer;
+    Receiver* receiver;
     double probability;
-    }ReceivererAndPrbability;
+    }ReceiverAndPrbability;
 
 class QueueStack
     {
@@ -49,4 +49,4 @@ class FIFO : public QueueStack
 		string type(){return string("FIFO");}
     };
 
-#endif // RECEIVERER_HPP
+#endif // RECEIVER_HPP
