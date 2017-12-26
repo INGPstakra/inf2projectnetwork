@@ -1,12 +1,14 @@
 #ifndef NETSIMULATION_HPP
 #define NETSIMULATION_HPP
 
-#include "Receiver.hpp"
+#include "QueueStack.hpp"
 #include "Nodes.hpp"
 #include "Network.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <iterator>
 
 using std::vector;
 using std::string;
@@ -19,7 +21,7 @@ class Simulation
     private:
         int number_of_cycles;
         vector<int> report_at_cycle;
-        
+
         bool verify(Network* net);
         bool sendAll(int time);
 

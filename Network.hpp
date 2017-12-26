@@ -1,12 +1,14 @@
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
-#include "Receiver.hpp"
+#include "QueueStack.hpp"
 #include "Nodes.hpp"
 #include "NetSimulation.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <iterator>
 
 using std::vector;
 using std::string;
@@ -19,7 +21,7 @@ class Network
         vector<Ramp*> list_of_Ramps;
         vector<Worker*> list_of_Workers;
         vector<Warehouse*> list_of_Warehouse;
-        
+
     public:
         bool addRamp(Ramp* ramp);
         bool addWorker(Worker* worker);
@@ -31,6 +33,7 @@ class Network
 
         bool loadElementsFromFile(istream& in);
         bool saveElementsToFile(ostream& out);
+
         friend class Simulation;
         friend class Report;
     };
