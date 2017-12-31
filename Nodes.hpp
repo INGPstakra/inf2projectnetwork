@@ -61,8 +61,8 @@ class Node : public Element
     public:
         //~Node();
         int numberOfProducts() {return list_of_products.size();}
-        virtual bool addProduct(Product* product);        //def. w ramp, worker, warehouse
-        virtual Product* removeProduct();    //def. w ramp, worker, warehouse
+        virtual bool addProduct(Product* product);        //def. w worker
+        virtual Product* removeProduct();    //def. w  worker
     };
 
 
@@ -81,7 +81,7 @@ class Deliverer : public Node
         bool addReceiver(Receiver* receiver);
         bool removeReceiver(Receiver* receiver);
         bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
-        virtual bool giveProduct(int time)=0;         //def. w ramp i worker
+        virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
     };
 
@@ -92,7 +92,7 @@ class Receiver
 
     public:
         bool addDeliverer(Deliverer* deliverer);
-        virtual bool takeProduct(Product* product);
+        virtual bool takeProduct(Product* product)=0;
         bool removeDelieverer(Deliverer* deliverer);
         int numberOfDeliverer() {return list_of_deliverer.size();}
     };
@@ -109,7 +109,7 @@ class Ramp : public Deliverer
         ~Ramp();
         bool createProduct(int time);
         int getTimeOfDelivery(){return TIME_OF_DELIVERY;}
-        virtual bool giveProduct(int time);         //def. w ramp i worker
+        virtual bool giveProduct();         
     };
 
 class Worker : public Deliverer, public Receiver
@@ -126,10 +126,10 @@ class Worker : public Deliverer, public Receiver
     public:
         Worker(int _PROCESSING_TIME, QueueStack* type);
         ~Worker();
-        virtual bool addProduct(Product* product);        //def. w ramp, worker, warehouse
+        virtual bool addProduct(Product* product);       
         virtual Product* removeProduct();
         virtual bool takeProduct(Product* product);
-        virtual bool giveProduct(int time);
+        virtual bool giveProduct();
     };
 
 class Warehouse : public Node, public Receiver

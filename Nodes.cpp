@@ -16,12 +16,12 @@ void Element::setID(vector<int>& numbers_of_Elements)
 
     std::sort(numbers_of_Elements.begin(),numbers_of_Elements.end());
 
-    unsigned int i=1;
+    unsigned int i=0;
     for( ; i<numbers_of_Elements.size(); i++)
         {
-         if(numbers_of_Elements[i]-numbers_of_Elements[i-1]>1)  /*sprawdz roznice pomiedzy poprzednim  a aktualnym => przerwa w numeracji*/
+         if(numbers_of_Elements[i]!=i+1)  /*sprawdz czy jest kolejny nr w numeracji*/
             {
-            ID=numbers_of_Elements[i-1]+1;
+            ID=i+1;
             numbers_of_Elements.push_back(ID);
             return ;
             }
@@ -64,6 +64,7 @@ Product* Node::removeProduct()
     if(!(list_of_products.empty()))
         {
         Product* product=list_of_products[list_of_products.size()-1];
+		list_of_products.pop_back();
         return product;
         }
 
@@ -118,11 +119,11 @@ bool Deliverer::addReceiver(Receiver* receiver)
 
     list_of_receivers.push_back(receiverAndProb);       //dodaj strukture
 
-    double prob=1/list_of_receivers.size();
+    double prob=1.0/list_of_receivers.size();
 
     for(auto x : list_of_receivers)         //ustaw praw. propprcjonalne
-        x->probability=prob;
-
+		x->probability=prob;
+		
     return true;
     }
 
@@ -137,7 +138,7 @@ void Deliverer::divideProbabilityRemoving(double prob)
         return ;
         }
 
-    divider=1/list_of_receivers.size();
+    divider=1.0/list_of_receivers.size();
     for(auto x : list_of_receivers)
         x->probability=divider;
 
@@ -195,12 +196,20 @@ bool Deliverer::setProbability(double* probability_tab, int length)
 Receiver* Deliverer::randomReceiver()
     {
     std::srand(time(NULL));
-    double random_rec=((double)std::rand())/RAND_MAX, sum=0;
+    double random=((double)std::rand())/RAND_MAX, sum=0;
+	
+	
+	for(int i=0,end=random*5;i<end;++i)			//petla o losowej liczbie iteracji
+		{
+		std::srand(random*time(NULL));		//losujemy liczbe całkowita
+		random=((double)std::rand())/RAND_MAX;			//losowa wartośc 0 do 1
+		}
 
-    for(int i=0;i<list_of_receivers.size();++i)
+    for(int i=0;i<list_of_receivers.size();++i)		
         {
-        sum+=list_of_receivers[i]->probability;
-        if(sum>=random_rec)
+        sum+=list_of_receivers[i]->probability;	//dodajemy kolejne prawdopodobiñstwa
+		
+        if(sum>=random)							//sprawdzamy czy sum>= wylosowana wartośc 
             return list_of_receivers[i]->receiver;
         }
 
@@ -268,11 +277,12 @@ bool Ramp::createProduct(int time)
     return false;
     }
 
-bool Ramp::giveProduct(int time)
+bool Ramp::giveProduct()
     {
-    if(!(time%TIME_OF_DELIVERY) && !(list_of_products.empty()))
+    if(!(list_of_products.empty()))
         {
         Receiver* rec=randomReceiver();
+		
         if(rec)
             return rec->takeProduct(removeProduct());
 
@@ -329,7 +339,7 @@ Worker::~Worker()
             }
     }
 
-bool Worker::giveProduct(int time)              // przekazanie produktu
+bool Worker::giveProduct()              // przekazanie produktu
     {
     if(!(time_of_processing%=PROCESSING_TIME))               //modulo ==0 => product gotowy lub nie było przetwarzania
         {
