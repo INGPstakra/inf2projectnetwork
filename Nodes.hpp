@@ -1,77 +1,146 @@
 #ifndef NODES_HPP
 #define NODES_HPP
 
-#include "Receiver.hpp"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iterator>
+#include <cstdlib>
+#include <time.h>
+#include "QueueStack.hpp"
+
+using std::vector;
+using std::string;
+using std::ostream;
+using std::istream;
+
+class Receiver;
+class QueueStack;
+class LIFO;
+class FIFO;
+
+
+typedef struct receiverAndProbability
+    {
+    Receiver* receiver;
+    double probability;
+    }ReceiverAndProbability;
+
 
 class Element
     {
-    private:
+    protected:
+        int ID;
 
-        const int ID;
-
-        virtual void setID()=0;
+        void setID(vector<int>& numbers_of_Elements);
 
     public:
-        int getID();
+        int getID(){return ID;}
     };
+
 
 class Product : public Element
     {
-    private:
-        int time_of_getting_warehouse;
-        static vector<int> numbers_of_products;
+    protected:
+        int time_of_getting_warehouse=0;
+        static vector<int> number_of_Products;
+
     public:
-        void addTimeOfGettingWarehouse();
-        int getTimeOfGettingWarehouse();
+        void addTimeOfGettingWarehouse(){time_of_getting_warehouse++;};
+        Product(){this->setID(number_of_Products);}
+        ~Product();
+        int getTimeOfGettingWarehouse(){return time_of_getting_warehouse;}
     };
 
 class Node : public Element
     {
-    private:
-        vector<Product*> list_of_products
+    protected:
+        vector<Product*> list_of_products;
+
     public:
-        void addProduct(const Product*);
-        void removeProduct(const Products*);
+        //~Node();
+        int numberOfProducts() {return list_of_products.size();}
+        virtual bool addProduct(Product* product);        //def. w worker
+        virtual Product* removeProduct();    //def. w  worker
     };
+
 
 class Deliverer : public Node
     {
-    private:
+    protected:
         vector<ReceiverAndProbability*> list_of_receivers;
 
+        void multipliProbabilityAdding(double prob,ReceiverAndProbability* rec); //met. pomocnicza mnożenie prawdopodobienstw
+        void divideProbabilityRemoving(double prob);                             //met. pom. dzielenie prawdopodbienstw
+        Receiver* randomReceiver();     //losowanie jednego z listy odbiorców
+
     public:
-        virtual void addReceiver(Receiver* receiver,double);
-        virtual void addReceiver(Receiver* receiver);
-        void removeReceiver(Receiver* receiver);
-        void setProbability(double* probability_tab);
-        virtual bool giveProduct();
+        //~Deliverer();
+        bool addReceiver(Receiver* receiver,double probability);
+        bool addReceiver(Receiver* receiver);
+        bool removeReceiver(Receiver* receiver);
+        bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
+        virtual bool giveProduct()=0;         //def. w ramp i worker
+        int numberOfReceiver() {return list_of_receivers.size();}
     };
+
+class Receiver
+    {
+    private:
+        vector<Deliverer*> list_of_deliverer;
+
+    public:
+        bool addDeliverer(Deliverer* deliverer);
+        virtual bool takeProduct(Product* product)=0;
+        bool removeDelieverer(Deliverer* deliverer);
+        int numberOfDeliverer() {return list_of_deliverer.size();}
+    };
+
 
 class Ramp : public Deliverer
     {
-    private:
-        const int TIME_OF_DELIVERY;
-        static vector<int> number_of_Ramps;
+    protected:
+        int TIME_OF_DELIVERY;                       //czas dostaw
+        static vector<int> number_of_Ramps;         //vector z nr id
 
     public:
-        Ramp(int _TIME_OF_DELIVERY);
+        Ramp(int _TIME_OF_DELIVERY);    /*************/
+        ~Ramp();
+        bool createProduct(int time);
+        int getTimeOfDelivery(){return TIME_OF_DELIVERY;}
+        virtual bool giveProduct();         
     };
 
 class Worker : public Deliverer, public Receiver
     {
-    private:
-        const int PROCESSING_TIME;
-        static vector<int> number_of_Workers;
-        QueueStack* type_of_taking_products;
+    protected:
+        int PROCESSING_TIME;                        //czas przetwarzania
+        static vector<int> number_of_Workers;       //vector z ID
+        QueueStack* type_of_taking_products;        //obiekt typu przechowywania
+        Product* product_in_processing=nullptr;     //aktualny przetwarzany product
+		int time_of_processing=0;                   //czas przetwarzania aktualnego produktu<PROCESSING_TIME
+
+		void addtime(){time_of_processing++;}
 
     public:
         Worker(int _PROCESSING_TIME, QueueStack* type);
+        ~Worker();
+        virtual bool addProduct(Product* product);       
+        virtual Product* removeProduct();
+        virtual bool takeProduct(Product* product);
+        virtual bool giveProduct();
     };
 
-class Warehouse : public Deliverer, public Receiver
+class Warehouse : public Node, public Receiver
     {
-    private:
-        static vector<int> numbers_of_Warehouse;
+    protected:
+        static vector<int> number_of_Warehouse;    //vector ID
+
+    public:
+        Warehouse(){this->setID(number_of_Warehouse);}
+        ~Warehouse();
+        virtual bool takeProduct(Product* product);
     };
 
 #endif // NODES_HPP

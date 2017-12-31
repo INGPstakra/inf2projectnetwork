@@ -1,25 +1,20 @@
 #ifndef NETSIMULATION_HPP
 #define NETSIMULATION_HPP
 
-class Network
-    {
-    private:
-        vector<Ramp*> list_of_Ramps;
-        vector<Worker*> list_of_Workers;
-        vector<Warehouse*> list_of_Warehouse;
+#include "QueueStack.hpp"
+#include "Nodes.hpp"
+#include "Network.hpp"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iterator>
 
-    public:
-        bool addRamp(Ramp* ramp);
-        bool addWorker(Worker* worker);
-        bool addWarehouse(Warehouse* warehouse);
+using std::vector;
+using std::string;
+using std::ostream;
+using std::istream;
 
-        bool removeRamp(Ramp* ramp);
-        bool removeWorker(Worker* worker);
-        bool removeWarehouse(Warehouse* warehouse);
-
-        bool loadElementsFromFile(istream& in);
-        bool saveElementsToFile(ostream& out);
-    };
 
 class Simulation
     {
@@ -28,8 +23,10 @@ class Simulation
         vector<int> report_at_cycle;
 
         bool verify(Network* net);
+        bool sendAll(int time);
 
     public:
+        Simulation(int _number_of_cycles,vector<int>& _report_at_cycle);
         bool startSimulation(Network* net);
         bool finishSimulation(Network* net);
     };
