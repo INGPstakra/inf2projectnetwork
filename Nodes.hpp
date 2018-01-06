@@ -80,9 +80,12 @@ class Deliverer : public Node
         bool addReceiver(Receiver* receiver,double probability);
         bool addReceiver(Receiver* receiver);
         bool removeReceiver(Receiver* receiver);
+        bool removeReceiver();
         bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
         virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
+        const std::vector<ReceiverAndProbability*> & receiverProbability(){return list_of_receivers;}
+        virtual void addTimeInProducts();       //ywołuje metode addTimeOfGettingWarehouse() w przechowywanych produktach
     };
 
 class Receiver
@@ -94,7 +97,9 @@ class Receiver
         bool addDeliverer(Deliverer* deliverer);
         virtual bool takeProduct(Product* product)=0;
         bool removeDelieverer(Deliverer* deliverer);
+        bool removeDelieverer();
         int numberOfDeliverer() {return list_of_deliverer.size();}
+        const std::vector<Deliverer*> & listOfDeliverer(){return list_of_deliverer;}
     };
 
 
@@ -105,11 +110,11 @@ class Ramp : public Deliverer
         static vector<int> number_of_Ramps;         //vector z nr id
 
     public:
-        Ramp(int _TIME_OF_DELIVERY);    /*************/
+        Ramp(int _TIME_OF_DELIVERY=1,int id=0);
         ~Ramp();
         bool createProduct(int time);
         int getTimeOfDelivery(){return TIME_OF_DELIVERY;}
-        virtual bool giveProduct();         
+        virtual bool giveProduct();
     };
 
 class Worker : public Deliverer, public Receiver
@@ -119,17 +124,18 @@ class Worker : public Deliverer, public Receiver
         static vector<int> number_of_Workers;       //vector z ID
         QueueStack* type_of_taking_products;        //obiekt typu przechowywania
         Product* product_in_processing=nullptr;     //aktualny przetwarzany product
-		int time_of_processing=0;                   //czas przetwarzania aktualnego produktu<PROCESSING_TIME
-
-		void addtime(){time_of_processing++;}
+		int time_of_processing=0;                   //czas przetwarzania aktualnego produktu<=PROCESSING_TIME
 
     public:
-        Worker(int _PROCESSING_TIME, QueueStack* type);
+        Worker(QueueStack* type, int _PROCESSING_TIME=1, int id=0);
         ~Worker();
-        virtual bool addProduct(Product* product);       
+        virtual bool addProduct(Product* product);
         virtual Product* removeProduct();
         virtual bool takeProduct(Product* product);
         virtual bool giveProduct();
+        int timeOfProcessing() {return time_of_processing;}
+        string type();
+        virtual void addTimeInProducts();
     };
 
 class Warehouse : public Node, public Receiver
@@ -138,9 +144,10 @@ class Warehouse : public Node, public Receiver
         static vector<int> number_of_Warehouse;    //vector ID
 
     public:
-        Warehouse(){this->setID(number_of_Warehouse);}
+        Warehouse(int id=0);
         ~Warehouse();
         virtual bool takeProduct(Product* product);
     };
+
 
 #endif // NODES_HPP

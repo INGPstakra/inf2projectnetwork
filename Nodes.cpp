@@ -2,7 +2,6 @@
 
 vector<int> Product::number_of_Products={}, Worker::number_of_Workers={},Ramp::number_of_Ramps={},Warehouse::number_of_Warehouse={};
 
-
 /********ELEMENT**********/
 void Element::setID(vector<int>& numbers_of_Elements)
     {
@@ -88,21 +87,31 @@ bool Deliverer::addReceiver(Receiver* receiver,double probability)
     if(receiver==nullptr || probability>1 || probability<0)         //z³e prawdop./ null
         return false;
 
-    for(auto x : list_of_receivers) //szukamy czy odbiorca nie jest dodany ewentualnie zmieniamy prawdop. i je przeliczamy.
-        {
-        if(x->receiver==receiver)
+    if(list_of_receivers.size())
+        for(auto x : list_of_receivers) //szukamy czy odbiorca nie jest dodany ewentualnie zmieniamy prawdop. i je przeliczamy.
             {
-            if(x->probability!=probability)
-                multipliProbabilityAdding(probability,x);
+            if(x->receiver==receiver)
+                {
+                if(x->probability!=probability)
+                    multipliProbabilityAdding(probability,x);
 
-            return true;
+                return true;
+                }
             }
-        }
+
     //odb. nie dodany tworzymy stukture i j¹ dodajemy do vectora, i przeliczamy prawdop.
     ReceiverAndProbability* receiverAndProb= new ReceiverAndProbability;
     receiverAndProb->receiver=receiver;
 
     list_of_receivers.push_back(receiverAndProb);
+
+
+    if(list_of_receivers.size()==1)
+        {
+        list_of_receivers[0]->probability=1;
+
+        return true;
+        }
 
     multipliProbabilityAdding(probability,receiverAndProb);
 
@@ -123,12 +132,15 @@ bool Deliverer::addReceiver(Receiver* receiver)
 
     for(auto x : list_of_receivers)         //ustaw praw. propprcjonalne
 		x->probability=prob;
-		
+
     return true;
     }
 
 void Deliverer::divideProbabilityRemoving(double prob)
     {
+    if(!list_of_receivers.size())
+        return;
+
     double divider=1-prob;
 
     if(divider)
@@ -168,6 +180,24 @@ bool Deliverer::removeReceiver(Receiver* receiver)
     return false;
     }
 
+bool Deliverer::removeReceiver()
+    {
+    if(!list_of_receivers.size())
+        return false;
+
+    ReceiverAndProbability* removed_stucture=list_of_receivers[list_of_receivers.size()-1];
+    double removed_probability=removed_stucture->probability;
+
+
+    list_of_receivers.pop_back();
+    delete removed_stucture;
+
+    divideProbabilityRemoving(removed_probability);
+
+    return true;
+
+    }
+
 bool Deliverer::setProbability(double* probability_tab, int length)
     {
     try
@@ -178,7 +208,7 @@ bool Deliverer::setProbability(double* probability_tab, int length)
             for(int i=0;i<length;++i)
                 sum+=probability_tab[i];
 
-            if(sum=!1)
+            if(sum!=1)
                 return false;
 
             for(int i=0;i<length;++i)
@@ -195,27 +225,31 @@ bool Deliverer::setProbability(double* probability_tab, int length)
 
 Receiver* Deliverer::randomReceiver()
     {
-    std::srand(time(NULL));
     double random=((double)std::rand())/RAND_MAX, sum=0;
-	
-	
-	for(int i=0,end=random*5;i<end;++i)			//petla o losowej liczbie iteracji
+
+    int ending=random*8;
+	for(int i=0;i<ending;++i)			//petla o losowej liczbie iteracji
 		{
-		std::srand(random*time(NULL));		//losujemy liczbe całkowita
+		std::srand((random*(double)time(NULL)));		//losowa wartosc seed
 		random=((double)std::rand())/RAND_MAX;			//losowa wartośc 0 do 1
 		}
 
-    for(int i=0;i<list_of_receivers.size();++i)		
+    for(int i=0;i<list_of_receivers.size();++i)
         {
         sum+=list_of_receivers[i]->probability;	//dodajemy kolejne prawdopodobiñstwa
-		
-        if(sum>=random)							//sprawdzamy czy sum>= wylosowana wartośc 
+
+        if(sum>=random)							//sprawdzamy czy sum>= wylosowana wartośc
             return list_of_receivers[i]->receiver;
         }
 
     return nullptr;
     }
 
+void Deliverer::addTimeInProducts()
+    {
+    for(auto x : list_of_products)
+        x->addTimeOfGettingWarehouse();
+    }
 
 /********RECEIVER********/
 bool Receiver::addDeliverer(Deliverer* deliverer)
@@ -246,16 +280,30 @@ bool Receiver::removeDelieverer(Deliverer* deliverer)
     return false;
     }
 
+bool Receiver::removeDelieverer()
+    {
+     if(list_of_deliverer.size())
+        {
+        list_of_deliverer.pop_back();
+
+        return true;
+        }
+
+    return false;
+    }
 
 /************RAMP**************/
-Ramp::Ramp(int _TIME_OF_DELIVERY=1)
+Ramp::Ramp(int _TIME_OF_DELIVERY,int id)
     {
     if(_TIME_OF_DELIVERY)
         TIME_OF_DELIVERY=_TIME_OF_DELIVERY;
     else
         TIME_OF_DELIVERY=1;
 
-    setID(number_of_Ramps);
+    if(id<=0)
+        setID(number_of_Ramps);
+    else
+        ID=id;
     }
 
 Ramp::~Ramp()
@@ -282,7 +330,7 @@ bool Ramp::giveProduct()
     if(!(list_of_products.empty()))
         {
         Receiver* rec=randomReceiver();
-		
+
         if(rec)
             return rec->takeProduct(removeProduct());
 
@@ -297,7 +345,7 @@ bool Ramp::giveProduct()
 bool Worker::addProduct(Product* product)
     {
     if(type_of_taking_products)
-        type_of_taking_products->push(product, list_of_products);
+        return type_of_taking_products->push(product, list_of_products);
 
     return false;
     }
@@ -312,21 +360,22 @@ Product* Worker::removeProduct()
 
 bool Worker::takeProduct(Product* product)
     {
-    if(type_of_taking_products)
-        return type_of_taking_products->push(product,list_of_products);
-
-    return false;
+    return addProduct(product);
     }
 
-Worker::Worker(int _PROCESSING_TIME,QueueStack* type)
+Worker::Worker(QueueStack* type, int _PROCESSING_TIME, int id)
     {
     if(!_PROCESSING_TIME)
         PROCESSING_TIME=1;
     else
-        PROCESSING_TIME=_PROCESSING_TIME;
+        PROCESSING_TIME=abs(_PROCESSING_TIME);
 
     type_of_taking_products=type;
-    setID(number_of_Workers);
+
+    if(id<=0)
+        setID(number_of_Workers);
+    else
+        ID=id;
     }
 
 Worker::~Worker()
@@ -367,7 +416,8 @@ bool Worker::giveProduct()              // przekazanie produktu
             if(!(list_of_products.empty()))                   //są zgromadzone jakieś produkty
                 {
                 product_in_processing=type_of_taking_products->pop(list_of_products);
-                return true;
+                time_of_processing=1;
+                return false;
                 }
             else                                            //nic nie przetwarzane i nie zgromadzne
                 return false;
@@ -388,8 +438,29 @@ bool Worker::giveProduct()              // przekazanie produktu
         }
     }
 
+std::string Worker::type()
+    {
+    return (type_of_taking_products->type());
+    }
+
+void Worker::addTimeInProducts()
+    {
+    for(auto x : list_of_products)
+        x->addTimeOfGettingWarehouse();
+
+    if(product_in_processing)
+        product_in_processing->addTimeOfGettingWarehouse();
+    }
 
 /***********WAREHOUSE***********/
+Warehouse::Warehouse(int id)
+    {
+    if(id<=0)
+        setID(number_of_Warehouse);
+    else
+        ID=id;
+    }
+
 Warehouse::~Warehouse()
     {
     for(int i=0;i<number_of_Warehouse.size();++i)
@@ -410,11 +481,6 @@ bool Warehouse::takeProduct(Product* product)
 
     return false;
     }
-
-
-
-
-
 
 
 /*************Koniec Nodes.cpp******************/
