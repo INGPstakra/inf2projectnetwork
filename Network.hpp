@@ -20,7 +20,7 @@ class Network
     private:
         vector<Ramp*> list_of_Ramps;
         vector<Worker*> list_of_Workers;
-        vector<Warehouse*> list_of_Warehouse;
+        vector<Warehouse*> list_of_Warehouses;
 
     public:
         bool addRamp(Ramp* ramp);
@@ -30,6 +30,10 @@ class Network
         bool removeRamp(Ramp* ramp);
         bool removeWorker(Worker* worker);
         bool removeWarehouse(Warehouse* warehouse);
+
+        Ramp* removeRamp();
+        Worker* removeWorker();
+        Warehouse* removeWarehouse();
 
         bool loadElementsFromFile(istream& in);
         bool saveElementsToFile(ostream& out);
