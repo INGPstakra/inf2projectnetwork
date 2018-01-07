@@ -93,8 +93,10 @@ bool Deliverer::addReceiver(Receiver* receiver,double probability)
             if(x->receiver==receiver)
                 {
                 if(x->probability!=probability)
+                    {
+                    divideProbabilityRemoving(x->probability);
                     multipliProbabilityAdding(probability,x);
-
+                    }
                 return true;
                 }
             }
@@ -251,6 +253,14 @@ void Deliverer::addTimeInProducts()
         x->addTimeOfGettingWarehouse();
     }
 
+void Deliverer::removeFromReceiver()
+    {
+    for(auto x : list_of_receivers)
+        {
+        x->receiver->removeDeliverer(this);
+        }
+    }
+
 /********RECEIVER********/
 bool Receiver::addDeliverer(Deliverer* deliverer)
     {
@@ -262,7 +272,7 @@ bool Receiver::addDeliverer(Deliverer* deliverer)
     return false;
     }
 
-bool Receiver::removeDelieverer(Deliverer* deliverer)
+bool Receiver::removeDeliverer(Deliverer* deliverer)
     {
     if(!deliverer)
         return false;
@@ -280,7 +290,7 @@ bool Receiver::removeDelieverer(Deliverer* deliverer)
     return false;
     }
 
-bool Receiver::removeDelieverer()
+bool Receiver::removeDeliverer()
     {
      if(list_of_deliverer.size())
         {
@@ -290,6 +300,14 @@ bool Receiver::removeDelieverer()
         }
 
     return false;
+    }
+
+void Receiver::removeFromDeliverer()
+    {
+    for(auto x : list_of_deliverer)
+        {
+        x->removeReceiver(this);
+        }
     }
 
 /************RAMP**************/
@@ -303,7 +321,15 @@ Ramp::Ramp(int _TIME_OF_DELIVERY,int id)
     if(id<=0)
         setID(number_of_Ramps);
     else
-        ID=id;
+        {
+        if(find(number_of_Ramps.begin(),number_of_Ramps.end(),id)==number_of_Ramps.end())
+            {
+            ID=id;
+            number_of_Ramps.push_back(id);
+            }
+        else
+            setID(number_of_Ramps);
+        }
     }
 
 Ramp::~Ramp()
@@ -312,6 +338,9 @@ Ramp::~Ramp()
         if(number_of_Ramps[i]==this->ID)
             {
             number_of_Ramps.erase(number_of_Ramps.begin()+i);
+
+            removeFromReceiver();
+
             return;
             }
     }
@@ -375,7 +404,15 @@ Worker::Worker(QueueStack* type, int _PROCESSING_TIME, int id)
     if(id<=0)
         setID(number_of_Workers);
     else
-        ID=id;
+        {
+        if(find(number_of_Workers.begin(),number_of_Workers.end(),id)==number_of_Workers.end())
+            {
+            ID=id;
+            number_of_Workers.push_back(id);
+            }
+        else
+            setID(number_of_Workers);
+        }
     }
 
 Worker::~Worker()
@@ -384,6 +421,10 @@ Worker::~Worker()
         if(number_of_Workers[i]==this->ID)
             {
             number_of_Workers.erase(number_of_Workers.begin()+i);
+
+            removeFromDeliverer();
+            removeFromReceiver();
+
             return;
             }
     }
@@ -458,7 +499,15 @@ Warehouse::Warehouse(int id)
     if(id<=0)
         setID(number_of_Warehouse);
     else
-        ID=id;
+        {
+        if(find(number_of_Warehouse.begin(),number_of_Warehouse.end(),id)==number_of_Warehouse.end())
+            {
+            ID=id;
+            number_of_Warehouse.push_back(id);
+            }
+        else
+            setID(number_of_Warehouse);
+        }
     }
 
 Warehouse::~Warehouse()
@@ -467,6 +516,9 @@ Warehouse::~Warehouse()
         if(number_of_Warehouse[i]==this->ID)
             {
             number_of_Warehouse.erase(number_of_Warehouse.begin()+i);
+
+            removeFromDeliverer();
+
             return;
             }
     }
