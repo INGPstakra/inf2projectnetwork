@@ -283,12 +283,12 @@ int main()
     war2.numberOfDeliverer();
     /**dodawanie i usuwanie nadawcow z warehouse**/
     cout<<"\n\nUsuwanie i dodawnie nadawcy:";
-    cout<<"\nwar1.removeDelieverer(&w5);  "<<
-    war1.removeDelieverer(&w5);
+    cout<<"\nwar1.removeDeliverer(&w5);  "<<
+    war1.removeDeliverer(&w5);
     cout<<"\nwar1.numberOfDeliverer();  "<<
     war1.numberOfDeliverer();
-    cout<<"\nwar2.removeDelieverer();  "<<
-    war2.removeDelieverer();
+    cout<<"\nwar2.removeDeliverer();  "<<
+    war2.removeDeliverer();
     cout<<"\nwar2.numberOfDeliverer();  "<<
     war2.numberOfDeliverer();
     cout<<"\nwar1.addDeliverer(&w5);  "<<
@@ -400,8 +400,9 @@ int main()
 	for(auto x : removed_products)
         delete x;
 
-	int z;
-	std::cin>>z;
+	string z;
+
+    cin>>z;
 
     return 0;
     }

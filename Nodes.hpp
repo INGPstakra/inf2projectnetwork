@@ -81,6 +81,7 @@ class Deliverer : public Node
         bool addReceiver(Receiver* receiver);
         bool removeReceiver(Receiver* receiver);
         bool removeReceiver();
+        void removeFromReceiver();
         bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
         virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
@@ -90,14 +91,15 @@ class Deliverer : public Node
 
 class Receiver
     {
-    private:
+    protected:
         vector<Deliverer*> list_of_deliverer;
 
     public:
         bool addDeliverer(Deliverer* deliverer);
+        bool removeDeliverer(Deliverer* deliverer);
+        bool removeDeliverer();
+        void removeFromDeliverer();
         virtual bool takeProduct(Product* product)=0;
-        bool removeDelieverer(Deliverer* deliverer);
-        bool removeDelieverer();
         int numberOfDeliverer() {return list_of_deliverer.size();}
         const std::vector<Deliverer*> & listOfDeliverer(){return list_of_deliverer;}
     };

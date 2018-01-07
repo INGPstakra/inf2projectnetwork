@@ -34,6 +34,14 @@ class Network
         Ramp* removeRamp();
         Worker* removeWorker();
         Warehouse* removeWarehouse();
+        void removeAll(); /*************/
+
+        bool addLink(Deliverer* deliverer, Receiver* receiver, double probability=-1);
+        bool removeLink(Deliverer* deliverer, Receiver* receiver);
+
+        Ramp* findRamp(int id);
+        Worker* findWorker(int id);
+        Warehouse* findWarehouse(int id);
 
         bool loadElementsFromFile(istream& in);
         bool saveElementsToFile(ostream& out);
