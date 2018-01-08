@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include<strstream>
 
 using std::vector;
 using std::string;
@@ -21,6 +22,8 @@ class Network
         vector<Ramp*> list_of_Ramps;
         vector<Worker*> list_of_Workers;
         vector<Warehouse*> list_of_Warehouses;
+        LIFO lifo;
+        FIFO fifo;
 
     public:
         bool addRamp(Ramp* ramp);
@@ -34,7 +37,9 @@ class Network
         Ramp* removeRamp();
         Worker* removeWorker();
         Warehouse* removeWarehouse();
-        void removeAll(); /*************/
+
+        void removeAllNodes(); /*************/ //tylko dla dynamicznie zaalokowanych produktow i wezlow
+        void clearAllNodes();   //tylko dla dynamicznie zaalokowanych produktow
 
         bool addLink(Deliverer* deliverer, Receiver* receiver, double probability=-1);
         bool removeLink(Deliverer* deliverer, Receiver* receiver);
@@ -49,5 +54,8 @@ class Network
         friend class Simulation;
         friend class Report;
     };
+
+char veryfi_padding(string line, std::string::size_type pos_start, std::string::size_type pos_end);//zwraca "" gdy zawiera tylko spacje i tabulacje, inaczej "Zly format"
+
 
 #endif //NETWORK_HPP
