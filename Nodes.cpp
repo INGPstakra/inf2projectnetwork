@@ -381,6 +381,9 @@ bool Worker::addProduct(Product* product)
 
 Product* Worker::removeProduct()
     {
+    if(product_in_processing)
+        return product_in_processing;
+
     if(type_of_taking_products)
         return type_of_taking_products->pop(list_of_products);
 

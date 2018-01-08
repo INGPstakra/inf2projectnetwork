@@ -401,7 +401,10 @@ int main()
         delete x;
 
 	string z;
-
+	getline(cin,z);
+	string::size_type* ptr;
+    double num=std::stoi(z,ptr);
+    cout<<to_string(num);
     cin>>z;
 
     return 0;

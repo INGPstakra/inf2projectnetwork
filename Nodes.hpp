@@ -71,9 +71,9 @@ class Deliverer : public Node
     protected:
         vector<ReceiverAndProbability*> list_of_receivers;
 
-        void multipliProbabilityAdding(double prob,ReceiverAndProbability* rec); //met. pomocnicza mno≈ºenie prawdopodobienstw
+        void multipliProbabilityAdding(double prob,ReceiverAndProbability* rec); //met. pomocnicza mnoøenie prawdopodobienstw
         void divideProbabilityRemoving(double prob);                             //met. pom. dzielenie prawdopodbienstw
-        Receiver* randomReceiver();     //losowanie jednego z listy odbiorc√≥w
+        Receiver* randomReceiver();     //losowanie jednego z listy odbiorcÛw
 
     public:
         //~Deliverer();
@@ -81,12 +81,12 @@ class Deliverer : public Node
         bool addReceiver(Receiver* receiver);
         bool removeReceiver(Receiver* receiver);
         bool removeReceiver();
-        void removeFromReceiver();
+        void removeFromReceiver();  /******************************/
         bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
         virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
         const std::vector<ReceiverAndProbability*> & receiverProbability(){return list_of_receivers;}
-        virtual void addTimeInProducts();       //ywo≈Çuje metode addTimeOfGettingWarehouse() w przechowywanych produktach
+        virtual void addTimeInProducts();  /*****/     //wyo≥uje metode addTimeOfGettingWarehouse() w przechowywanych produktach
     };
 
 class Receiver
@@ -98,7 +98,7 @@ class Receiver
         bool addDeliverer(Deliverer* deliverer);
         bool removeDeliverer(Deliverer* deliverer);
         bool removeDeliverer();
-        void removeFromDeliverer();
+        void removeFromDeliverer();  /******************************/
         virtual bool takeProduct(Product* product)=0;
         int numberOfDeliverer() {return list_of_deliverer.size();}
         const std::vector<Deliverer*> & listOfDeliverer(){return list_of_deliverer;}
@@ -116,7 +116,7 @@ class Ramp : public Deliverer
         ~Ramp();
         bool createProduct(int time);
         int getTimeOfDelivery(){return TIME_OF_DELIVERY;}
-        virtual bool giveProduct();
+        virtual bool giveProduct() override;
     };
 
 class Worker : public Deliverer, public Receiver
@@ -131,13 +131,13 @@ class Worker : public Deliverer, public Receiver
     public:
         Worker(QueueStack* type, int _PROCESSING_TIME=1, int id=0);
         ~Worker();
-        virtual bool addProduct(Product* product);
-        virtual Product* removeProduct();
+        virtual bool addProduct(Product* product) override;
+        virtual Product* removeProduct() override;
         virtual bool takeProduct(Product* product);
-        virtual bool giveProduct();
+        virtual bool giveProduct() override;
         int timeOfProcessing() {return time_of_processing;}
         string type();
-        virtual void addTimeInProducts();
+        virtual void addTimeInProducts() override;/******/
     };
 
 class Warehouse : public Node, public Receiver
@@ -148,8 +148,9 @@ class Warehouse : public Node, public Receiver
     public:
         Warehouse(int id=0);
         ~Warehouse();
-        virtual bool takeProduct(Product* product);
+        virtual bool takeProduct(Product* product) override;
     };
+
 
 
 #endif // NODES_HPP
