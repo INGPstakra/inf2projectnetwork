@@ -3,18 +3,20 @@
 
 #include "QueueStack.hpp"
 #include "Nodes.hpp"
-#include "NetSimulation.hpp"
+//#include "NetSimulation.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <iterator>
-#include<strstream>
+//#include<strstream>
 
 using std::vector;
 using std::string;
+using std::ifstream;
 using std::ostream;
 using std::istream;
+using std::to_string;
 
 class Network
     {
@@ -22,8 +24,7 @@ class Network
         vector<Ramp*> list_of_Ramps;
         vector<Worker*> list_of_Workers;
         vector<Warehouse*> list_of_Warehouses;
-        LIFO lifo;
-        FIFO fifo;
+
 
     public:
         bool addRamp(Ramp* ramp);
@@ -38,7 +39,7 @@ class Network
         Worker* removeWorker();
         Warehouse* removeWarehouse();
 
-        void removeAllNodes(); /*************/ //tylko dla dynamicznie zaalokowanych produktow i wezlow
+        void removeAllNodes(); //tylko dla dynamicznie zaalokowanych produktow i wezlow
         void clearAllNodes();   //tylko dla dynamicznie zaalokowanych produktow
 
         bool addLink(Deliverer* deliverer, Receiver* receiver, double probability=-1);
@@ -48,14 +49,16 @@ class Network
         Worker* findWorker(int id);
         Warehouse* findWarehouse(int id);
 
-        bool loadElementsFromFile(istream& in);
-        bool saveElementsToFile(ostream& out);
+        void print();
 
-        friend class Simulation;
-        friend class Report;
+        bool loadElementsFromFile(istream& in);
+        //bool saveElementsToFile(ostream& out);
+
+//        friend class Simulation;
+//        friend class Report;
     };
 
-char veryfi_padding(string line, std::string::size_type pos_start, std::string::size_type pos_end);//zwraca "" gdy zawiera tylko spacje i tabulacje, inaczej "Zly format"
+string veryfi_padding(string line, std::string::size_type & pos_start, std::string::size_type pos_end);//zwraca "" gdy zawiera tylko spacje i tabulacje, inaczej "Zly format"
 
 
 #endif //NETWORK_HPP
