@@ -357,28 +357,28 @@ bool Network::loadElementsFromFile(istream& in)
                  src_dest_worker="worker-", dest=" dest=", dest_warehouse="store-", probability=" p=";
     int line_number=1;
 
-    while(!i.eof())        //glowana petla odczytu danych
+    while(!in.eof())        //glowana petla odczytu danych
         {
-         std::getline(in,line);
+        try
+            {
+             std::getline(in,line);
 
-        if(line[0]==';' || line[0]=='\0')
-            {
-            ptr=0;
-            ++line_number;
-            continue;
-            }
-        else if((f=line.find(ramp,0))!=std::string::npos)   //jesli znaleziono lancuch ramp
-            {
-            if(current_flag!=R && possibly_flag!=R)
+            if(line[0]==';' || line[0]=='\0')
                 {
-                error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
-                break;
+                ptr=0;
+                ++line_number;
+                continue;
                 }
-            current_flag=R;
-            ptr=0;
-
-            try
+            else if((f=line.find(ramp,0))!=std::string::npos)   //jesli znaleziono lancuch ramp
                 {
+                if(current_flag!=R && possibly_flag!=R)
+                    {
+                    error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
+                    break;
+                    }
+                current_flag=R;
+                ptr=0;
+
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
                     error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i abulacje
@@ -413,54 +413,20 @@ bool Network::loadElementsFromFile(istream& in)
                     }
                 else
                     throw except="blad";
+
+
+                possibly_flag=W;
                 }
-            catch(string s)
+            else if((f=line.find(worker,0))!=std::string::npos)   //jesli znaleziono lancuch worker
                 {
-                string st(ptr+1,' ');
-                st[ptr]='^';
+                if(current_flag!=W && possibly_flag!=W)
+                    {
+                    error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
+                    break;
+                    }
+                current_flag=W;
+                ptr=0;
 
-                if(s=="format")
-                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else if(s=="blad")
-                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-
-                break;
-                }
-             catch(char* ch)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad:\n";
-                error+=ch;
-                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-            catch(...)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-
-            possibly_flag=W;
-            }
-        else if((f=line.find(worker,0))!=std::string::npos)   //jesli znaleziono lancuch worker
-            {
-            if(current_flag!=W && possibly_flag!=W)
-                {
-                error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
-                break;
-                }
-            current_flag=W;
-            ptr=0;
-
-            try
-                {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
                     error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
@@ -542,54 +508,19 @@ bool Network::loadElementsFromFile(istream& in)
                     }
                 else
                     throw except="blad";
+
+                possibly_flag=S;
                 }
-            catch(string s)
+            else if((f=line.find(warehouse,0))!=std::string::npos)   //jesli znaleziono lancuch warehouse
                 {
-                string st(ptr+1,' ');
-                st[ptr]='^';
+                if(current_flag!=S && possibly_flag!=S)
+                    {
+                    error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
+                    break;
+                    }
+                current_flag=S;
+                ptr=0;
 
-                if(s=="format")
-                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else if(s=="blad")
-                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-
-                break;
-                }
-             catch(char* ch)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad:\n";
-                error+=ch;
-                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-            catch(...)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-
-            possibly_flag=S;
-            }
-        else if((f=line.find(warehouse,0))!=std::string::npos)   //jesli znaleziono lancuch warehouse
-            {
-            if(current_flag!=S && possibly_flag!=S)
-                {
-                error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
-                break;
-                }
-            current_flag=S;
-            ptr=0;
-
-            try
-                {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
                     error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
@@ -609,54 +540,18 @@ bool Network::loadElementsFromFile(istream& in)
                 if(!addWarehouse(storehouse))
                     throw except="Blad przy dodawaniu magazynu";
 
+                possibly_flag=L;
                 }
-            catch(string s)
+            else if((f=line.find(link,0))!=std::string::npos)   //jesli znaleziono lancuch link
                 {
-                string st(ptr+1,' ');
-                st[ptr]='^';
+                if(current_flag!=L && possibly_flag!=L)
+                    {
+                    error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
+                    break;
+                    }
+                current_flag=L;
+                ptr=0;
 
-                if(s=="format")
-                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else if(s=="blad")
-                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-
-                break;
-                }
-             catch(char* ch)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad:\n";
-                error+=ch;
-                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-            catch(...)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-
-            possibly_flag=L;
-            }
-        else if((f=line.find(link,0))!=std::string::npos)   //jesli znaleziono lancuch link
-            {
-            if(current_flag!=L && possibly_flag!=L)
-                {
-                error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
-                break;
-                }
-            current_flag=L;
-            ptr=0;
-
-            try
-                {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
                     error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
@@ -788,48 +683,48 @@ bool Network::loadElementsFromFile(istream& in)
                     }
                 else
                     throw except="blad dodawania polaczenia w wezlach";
+
+                possibly_flag=L;
                 }
-            catch(string s)
+            else
                 {
                 string st(ptr+1,' ');
                 st[ptr]='^';
 
-                if(s=="format")
-                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else if(s=="blad")
-                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr)+":\n"+line+"\n"+st;
                 break;
                 }
-             catch(char* ch)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad:\n";
-                error+=ch;
-                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-            catch(...)
-                {
-                string st(ptr+1,' ');
-                st[ptr]='^';
-
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
-                break;
-                }
-
-            possibly_flag=L;
             }
-        else
+        catch(string s)
             {
             string st(ptr+1,' ');
             st[ptr]='^';
 
-            error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr)+":\n"+line+"\n"+st;
+            if(s=="format")
+                error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+            else if(s=="blad")
+                error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+            else
+                error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+
+            break;
+            }
+         catch(char* ch)
+            {
+            string st(ptr+1,' ');
+            st[ptr]='^';
+
+            error="Nieznany blad:\n";
+            error+=ch;
+            error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+            break;
+            }
+        catch(...)
+            {
+            string st(ptr+1,' ');
+            st[ptr]='^';
+
+            error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
             break;
             }
 
@@ -844,7 +739,6 @@ bool Network::loadElementsFromFile(istream& in)
             std::cout<<'\n'<<error;
             return false;
             }
-
 
     return true;
     }
@@ -868,7 +762,7 @@ void Network::print()
         {
         std::cout<<"\nID: "<<x->getID()<<"\tPROCESSING_TIME : "<<x->getPROCESSING_TIME()<<"\tqueue type: "<<x->type()<<"\tadress: "<<x<<"\n\tOdbiorcy: ";
         for(auto y : x->receiverProbability())
-            std::cout<<"\n\n\treceiver adress: "<<y->receiver<<"\t probability"<<y->probability;
+            std::cout<<"\n\n\treceiver adress: "<<y->receiver<<"\t probability: "<<y->probability;
 
         std::cout<<"\n\tDostawcy:";
         for(auto y : x->listOfDeliverer())

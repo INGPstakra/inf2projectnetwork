@@ -423,7 +423,7 @@ int main()
 //	string::size_type* ptr;
 //    double num=std::stoi(z,ptr);
 //    cout<<to_string(num);
-    //cin>>z;
+    std::cin>>z;
 
 
 
