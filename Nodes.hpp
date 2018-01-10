@@ -85,6 +85,7 @@ class Deliverer : public Node
         bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
         virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
+        double getProbability(Receiver* receiver);
         const std::vector<ReceiverAndProbability*> & receiverProbability(){return list_of_receivers;}
         virtual void addTimeInProducts();  /*****/     //wyo³uje metode addTimeOfGettingWarehouse() w przechowywanych produktach
     };

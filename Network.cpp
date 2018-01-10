@@ -345,7 +345,7 @@ string veryfi_padding(string line, std::string::size_type & pos_start, std::stri
     return error;
     }
 
-bool Network::loadElementsFromFile(istream& in)
+bool Network::loadElementsFromStream(istream& in)
     {
     std::string::size_type ptr=0;  //ptr intex na miejsce za liczba od poczatku tej liczby
     const char R='r', W='w', S='s',L='l';
@@ -782,6 +782,73 @@ void Network::print()
 
     }
 
+bool Network::saveElementsToStream(ostream& out)
+    {
+    using std::endl;
+    try
+        {
+        std::stringstream buf(std::ios_base::out|std::ios_base::in );
+        const string ramp="LOADING_RAMP id=", delivery_interwal=" delivery-interval=", worker="WORKER id=", processing_time=" processing-time=",
+                     queue=" queue-type=", type_lifo="LIFO", type_fifo="FIFO", warehouse="STOREHOUSE id=", link="LINK src=", src_ramp="ramp-",
+                     src_dest_worker="worker-", dest=" dest=", dest_warehouse="store-", probability=" p=";
+
+        out<<";== LOADING_RAMPS ==\n"<<endl;
+
+        for(Ramp* x : list_of_Ramps)    //zapisujemy rampy
+            if(x)
+                out<<ramp<<x->getID()<<delivery_interwal<<x->getTimeOfDelivery()<<endl;
+
+        out<<"\n\n;== WORKERS ==\n"<<endl;
+
+        for(Worker* x : list_of_Workers)    //zapisujemy pracownikow
+            if(x)
+                {
+                out<<worker<<x->getID()<<processing_time<<x->getPROCESSING_TIME()<<queue<<x->type()<<endl;
+
+                buf<<endl;
+
+                for(Deliverer* y : x->listOfDeliverer())    //wszyscy nadawcy do tego pracownika
+                    if(y)                                   //zapisujemy do bufora aby pozniej zapisac na koncu pliku
+                        {
+                        if(list_of_Ramps.end()!=std::find(list_of_Ramps.begin(),list_of_Ramps.end(),y))
+                            buf<<link<<src_ramp<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                        else if(list_of_Workers.end()!=std::find(list_of_Workers.begin(),list_of_Workers.end(),y))
+                            buf<<link<<src_dest_worker<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                        }
+
+                }
+
+        out<<"\n\n;== STOREHOUSES ==\n"<<endl;
+
+        for(Warehouse* x : list_of_Warehouses)  //zapisujemy magazyny
+            if(x)
+                {
+                out<<warehouse<<x->getID()<<endl;
+
+                buf<<endl;
+
+                for(Deliverer* y : x->listOfDeliverer())    //wszyscy nadawcy do tego magazynu
+                    if(y)                                   //zapisujemy do bufora aby pozniej zapisac na koncu pliku
+                        {
+                        if(list_of_Ramps.end()!=std::find(list_of_Ramps.begin(),list_of_Ramps.end(),y))
+                            buf<<link<<src_ramp<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                        else if(list_of_Workers.end()!=std::find(list_of_Workers.begin(),list_of_Workers.end(),y))
+                            buf<<link<<src_dest_worker<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                        }
+
+                }
+
+        out<<"\n\n;== LINKS =="<<endl;
+        out<<buf.str();   //zapisujemy wczesniej zgromadzone informacje o poloczeniach
+        }
+    catch(string s)
+        {
+        std::cout<<'\n'<<s<<endl;
+        return false;
+        }
+
+    return true;
+    }
 
 
 

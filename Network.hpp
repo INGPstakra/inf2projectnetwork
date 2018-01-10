@@ -9,7 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
-//#include<strstream>
+#include<sstream>
 
 using std::vector;
 using std::string;
@@ -51,8 +51,8 @@ class Network
 
         void print();
 
-        bool loadElementsFromFile(istream& in);
-        //bool saveElementsToFile(ostream& out);
+        bool loadElementsFromStream(istream& in);
+        bool saveElementsToStream(ostream& out);
 
 //        friend class Simulation;
 //        friend class Report;

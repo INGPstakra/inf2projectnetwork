@@ -261,6 +261,15 @@ void Deliverer::removeFromReceiver()
         }
     }
 
+double Deliverer::getProbability(Receiver* receiver)
+    {
+    for(ReceiverAndProbability* x : list_of_receivers)
+        if(x->receiver==receiver)
+            return x->probability;
+
+    return 0.0;
+    }
+
 /********RECEIVER********/
 bool Receiver::addDeliverer(Deliverer* deliverer)
     {

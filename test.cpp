@@ -401,11 +401,12 @@ int main()
     std::ifstream plik;
     plik.open( "struct-input.txt", std::ios::in | std::ios::out );
 
-    net.loadElementsFromFile(plik);
+    net.loadElementsFromStream(plik);
     plik.close();
-    net.print();
+    net.saveElementsToStream(std::cout);
     net.removeAllNodes();
 
+    net.saveElementsToStream(std::cout);
 
 
 
