@@ -1,5 +1,8 @@
 #include "Network.hpp"
 
+LIFO lifo;
+FIFO fifo;
+
 /************dodawanie wezla**********/
 
 bool Network::addRamp(Ramp* ramp)
@@ -32,7 +35,7 @@ bool Network::addWarehouse(Warehouse* warehouse)
     {
     if(warehouse)
         {
-        list_of_Warehouse.push_back(warehouse);
+        list_of_Warehouses.push_back(warehouse);
 
         return true;
         }
@@ -53,7 +56,7 @@ bool Network::removeRamp(Ramp* ramp)
             {
             list_of_Ramps.erase(list_of_Ramps.begin()+i);
 
-            ramp.removeFromReceiver();
+            ramp->removeFromReceiver();
 
             return true;
             }
@@ -73,8 +76,8 @@ bool Network::removeWorker(Worker* worker)
             {
             list_of_Workers.erase(list_of_Workers.begin()+i);
 
-            worker.removeFromDeliverer();
-            worker.removeFromReceiver();
+            worker->removeFromDeliverer();
+            worker->removeFromReceiver();
 
             return true;
             }
@@ -94,7 +97,7 @@ bool Network::removeWarehouse(Warehouse* warehouse)
             {
             list_of_Warehouses.erase(list_of_Warehouses.begin()+i);
 
-            warehouse.removeFromDeliverer();
+            warehouse->removeFromDeliverer();
 
             return true;
             }
@@ -113,7 +116,7 @@ Ramp* Network::removeRamp()
 
     list_of_Ramps.pop_back();
 
-    ramp.removeFromReceiver();
+    ramp->removeFromReceiver();
 
     return ramp;
     }
@@ -125,8 +128,8 @@ Worker* Network::removeWorker()
 
     Worker* worker=list_of_Workers[list_of_Workers.size()-1];
 
-    worker.removeFromDeliverer();
-    worker.removeFromReceiver();
+    worker->removeFromDeliverer();
+    worker->removeFromReceiver();
 
     list_of_Workers.pop_back();
 
@@ -140,7 +143,7 @@ Warehouse* Network::removeWarehouse()
 
     Warehouse* warehouse=list_of_Warehouses[list_of_Warehouses.size()-1];
 
-    warehouse.removeFromDeliverer();
+    warehouse->removeFromDeliverer();
 
     list_of_Warehouses.pop_back();
 
@@ -181,9 +184,13 @@ void Network::removeAllNodes()
         list_of_Warehouses.clear();
         }
     catch(string s)
-        std::cout<<"\nblad usuwania produktow\n"<<s;
+        {
+        std::cout<<"\nblad usuwania produktow lub wezlow\n"<<s;
+        }
     catch(...)
-        std::cout<<"\nblad usuwania produktow\n";
+        {
+        std::cout<<"\nblad usuwania produktow lub wezlow\n";
+        }
     }
 
 void Network::clearAllNodes()
@@ -212,9 +219,13 @@ void Network::clearAllNodes()
             }
         }
     catch(string s)
+        {
         std::cout<<"\nblad usuwania produktow\n"<<s;
+        }
     catch(...)
+        {
         std::cout<<"\nblad usuwania produktow\n";
+        }
     }
 
 
@@ -236,7 +247,7 @@ Worker* Network::findWorker(int id)
     if(id<=0)
         return nullptr;
 
-    for(auto x : list_of_Workers)
+    for(Worker* x : list_of_Workers)
         if(x->getID()==id)
             return x;
 
@@ -277,7 +288,7 @@ bool Network::addLink(Deliverer* deliverer, Receiver* receiver, double probabili
             d=x;
         }
 
-    if(r==receiver && d=deliverer)  //jesli znalezieni
+    if(r==receiver && d==deliverer)  //jesli znalezieni
         {
         r->addDeliverer(d);
         if(probability!=-1)
@@ -290,7 +301,7 @@ bool Network::addLink(Deliverer* deliverer, Receiver* receiver, double probabili
         if(x==receiver)
             r=x;
 
-    if(r==receiver && d=deliverer)      //jesli znalezieni
+    if(r==receiver && d==deliverer)      //jesli znalezieni
         {
         r->addDeliverer(d);
         if(probability!=-1)
@@ -319,36 +330,43 @@ bool Network::removeLink(Deliverer* deliverer, Receiver* receiver)
 
 /***********wczytywanie********************/
 
-string veryfi_padding(string line, std::string::size_type pos_start, std::string::size_type pos_end)
+string veryfi_padding(string line, std::string::size_type & pos_start, std::string::size_type pos_end)
     {
     string error="";
 
     for(auto i=pos_start;i<=pos_end;++i)
         if(line[i]!=' ' && line[i]!='\t')   //moze zaczynac sie spacja lub tab
             {
-            error="/nZly format";
+            error="Zly format";
+            pos_start+=i;
 
             break;
             }
     return error;
     }
 
-bool loadElementsFromFile(istream& in)
+bool Network::loadElementsFromFile(istream& in)
     {
-    std::string::size_type ptr=nullptr;
+    std::string::size_type ptr=0;  //ptr intex na miejsce za liczba od poczatku tej liczby
     const char R='r', W='w', S='s',L='l';
     char current_flag=R, possibly_flag=R;
-    string error="",line="";
+    string error="", line="", except="";
     unsigned int f=0;
     const string ramp="LOADING_RAMP id=", delivery_interwal=" delivery-interval=", worker="WORKER id=", processing_time=" processing-time=",
                  queue=" queue-type=", type_lifo="LIFO", type_fifo="FIFO", warehouse="STOREHOUSE id=", link="LINK src=", src_ramp="ramp-",
                  src_dest_worker="worker-", dest=" dest=", dest_warehouse="store-", probability=" p=";
-    int line_number=0;
+    int line_number=1;
 
-    while(std::getline(in,line))        //glowana petla odczytu danych
+    while(!i.eof())        //glowana petla odczytu danych
         {
-        if(line[0]==';' || line[0]=="")
+         std::getline(in,line);
+
+        if(line[0]==';' || line[0]=='\0')
+            {
+            ptr=0;
+            ++line_number;
             continue;
+            }
         else if((f=line.find(ramp,0))!=std::string::npos)   //jesli znaleziono lancuch ramp
             {
             if(current_flag!=R && possibly_flag!=R)
@@ -356,67 +374,78 @@ bool loadElementsFromFile(istream& in)
                 error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
                 break;
                 }
+            current_flag=R;
+            ptr=0;
 
             try
                 {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
-                    error=veryfi_padding(line,0,f);     //sprawdzamy czy wypelnieniem sa spacje i abulacje
+                    error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i abulacje
                     if(error!="")
-                        throw "format";
+                        throw except="format";
                     }
 
-                std::string::size_type ptr=nullptr;             //ptr intex na miejsce za liczba od poczatku tej liczby
-                int id=std::stoi(&(line[f+ramp.length()]),ptr); //wyciagniecie id z napisu
+                int id=std::stoi(&(line[f+ramp.length()]),&ptr); //wyciagniecie id z napisu
                 ptr+=f+ramp.length();
 
                 /***********************/
-                if(f=line.find(delivery_interwal,ptr))          //czy kontynuacja od ptr zawiera lancuch delivery_interwal
+                if(std::string::npos!=(f=line.find(delivery_interwal,ptr)))          //czy kontynuacja od ptr zawiera lancuch delivery_interwal
                     {
                     if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int time_of_delivery=std::stoi(&(line[f+delivery_interwal.length()]),ptr);    //wyciagniecie wartosci czestosci dostaw
+                    int time_of_delivery=std::stoi(&(line[f+delivery_interwal.length()]),&ptr);    //wyciagniecie wartosci czestosci dostaw
                     ptr+=f+delivery_interwal.length();          //index
 
                     /***********************/
                     if(line[ptr]!='\0')
-                        throw "dodatkowe znaki na koncu";
+                        throw except="dodatkowe znaki na koncu";
 
                     Ramp* ra=new Ramp(time_of_delivery,id);
 
                     if(!addRamp(ra))
-                        throw "Blad przy dodawaniu rampy";
+                        throw except="Blad przy dodawaniu rampy";
                     }
                 else
-                    throw "blad";
+                    throw except="blad";
                 }
             catch(string s)
                 {
-                if(s=="format")
-                    error+="w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else if(s=="blad")
-                    error=s+"w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else
-                    error="Nieznany blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
 
+                if(s=="format")
+                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else if(s=="blad")
+                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else
+                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+
+                break;
+                }
+             catch(char* ch)
+                {
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad:\n";
+                error+=ch;
+                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
             catch(...)
                 {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
-                break;
-                }
-            else
-                {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
-                break;
-                }
+                string st(ptr+1,' ');
+                st[ptr]='^';
 
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                break;
+                }
 
             possibly_flag=W;
             }
@@ -427,110 +456,123 @@ bool loadElementsFromFile(istream& in)
                 error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
                 break;
                 }
+            current_flag=W;
+            ptr=0;
 
             try
                 {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
-                    error=veryfi_padding(line,0,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
+                    error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
                     if(error!="")
-                        throw "format";
+                        throw except="format";
                     }
 
-                ptr=nullptr;             //ptr intex na miejsce za liczba od poczatku tej liczby
-                int id=std::stoi(&(line[f+worker.length()]),ptr); //wyciagniecie id z napisu
+                int id=std::stoi(&(line[f+worker.length()]),&ptr); //wyciagniecie id z napisu
                 ptr+=f+worker.length();
 
                 /***********************/
-                if(f=line.find(processing_time,ptr))          //czy kontynuacja od ptr zawiera lancuch processing_time
+                if(std::string::npos!=(f=line.find(processing_time,ptr)))          //czy kontynuacja od ptr zawiera lancuch processing_time
                     {
                     if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int processing=std::stoi(&(line[f+processing_time.length()]),ptr);    //wyciagniecie wartosci czasu przetwarzania
+                    int processing=std::stoi(&(line[f+processing_time.length()]),&ptr);    //wyciagniecie wartosci czasu przetwarzania
                     ptr+=f+processing_time.length();          //index
 
                     /***********************/
-                    if(f=line.find(queue,ptr))          //czy kontynuacja od ptr zawiera lancuch queue
+                    if(std::string::npos!=(f=line.find(queue,ptr)))          //czy kontynuacja od ptr zawiera lancuch queue
                         {
                         if(f!=ptr)              //jesli nie zaczyna sie od razu
                             {
                             error=veryfi_padding(line,ptr,f);
                             if(error!="")
-                                throw "format";
+                                throw except="format";
                             }
 
-                        ptr+=f+queue.length();
+                        ptr+=queue.length();
 
-                        string type_queue="";
+                        QueueStack* type_queue=nullptr;
 
                         // sprawdzanie typu kolejki
-                        if(f=line.find(type_fifo,ptr))  //FIFO
+                        if(std::string::npos!=(f=line.find(type_fifo,ptr)))  //FIFO
                             {
-                             if(f!=ptr)              //jesli nie zaczyna sie od razu
+                            if(f!=ptr)              //jesli nie zaczyna sie od razu
                                 {
                                 error=veryfi_padding(line,ptr,f);
                                 if(error!="")
-                                    throw "format";
+                                    throw except="format";
                                 }
 
-                            type_queue=type_fifo;
-                            ptr+=f+type_fifo.length();
+                            type_queue=&fifo;
+                            ptr+=type_fifo.length();
                             }
-                        else if(f=line.find(type_lifo,ptr)) //LIFO
+                        else if(std::string::npos!=(f=line.find(type_lifo,ptr)))  //LIFO
                             {
-                             if(f!=ptr)              //jesli nie zaczyna sie od razu
+                            if(f!=ptr)              //jesli nie zaczyna sie od razu
                                 {
                                 error=veryfi_padding(line,ptr,f);
                                 if(error!="")
-                                    throw "format";
+                                    throw except="format";
                                 }
 
-                            type_queue=type_lifo;
-                            ptr+=f+type_lifo.length();
+                            type_queue=&lifo;
+                            ptr+=type_lifo.length();
                             }
                         else
-                            throw "blad";
+                            throw except="blad";
 
                         /***********************/
+
                         if(line[ptr]!='\0')
-                            throw "dodatkowe znaki na koncu";
+                            throw except="dodatkowe znaki na koncu";
+
 
                         Worker* employee=new Worker(type_queue,processing,id);
-
                         if(!addWorker(employee))
-                            throw "Blad przy dodawaniu pracownika";
+                            throw except="Blad przy dodawaniu pracownika";
 
                         }
                     else
-                        throw "blad";
+                        throw except="blad";
                     }
                 else
-                    throw "blad";
+                    throw except="blad";
                 }
             catch(string s)
                 {
-                if(s=="format")
-                    error+="w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else if(s=="blad")
-                    error=s+"w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
 
+                if(s=="format")
+                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else if(s=="blad")
+                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else
+                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+
+                break;
+                }
+             catch(char* ch)
+                {
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad:\n";
+                error+=ch;
+                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
             catch(...)
                 {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
-                break;
-                }
-            else
-                {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
 
@@ -543,49 +585,61 @@ bool loadElementsFromFile(istream& in)
                 error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
                 break;
                 }
+            current_flag=S;
+            ptr=0;
 
             try
                 {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
-                    error=veryfi_padding(line,0,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
+                    error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
                     if(error!="")
-                        throw "format";
+                        throw except="format";
                     }
 
-                ptr=nullptr;             //ptr intex na miejsce za liczba od poczatku tej liczby
-                int id=std::stoi(&(line[f+warehouse.length()]),ptr); //wyciagniecie id z napisu
+                int id=std::stoi(&(line[f+warehouse.length()]),&ptr); //wyciagniecie id z napisu
                 ptr+=f+warehouse.length();
 
                 /***********************/
                 if(line[ptr]!='\0')
-                    throw "dodatkowe znaki na koncu";
+                    throw except="dodatkowe znaki na koncu";
 
                 Warehouse* storehouse=new Warehouse(id);
 
                 if(!addWarehouse(storehouse))
-                    throw "Blad przy dodawaniu magazynu";
+                    throw except="Blad przy dodawaniu magazynu";
 
                 }
             catch(string s)
                 {
-                if(s=="format")
-                    error+="w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else if(s=="blad")
-                    error=s+"w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
 
+                if(s=="format")
+                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else if(s=="blad")
+                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else
+                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+
+                break;
+                }
+             catch(char* ch)
+                {
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad:\n";
+                error+=ch;
+                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
             catch(...)
                 {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
-                break;
-                }
-            else
-                {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
 
@@ -598,14 +652,16 @@ bool loadElementsFromFile(istream& in)
                 error="Blad kolejnosci!/nPoprawna kolejnosc: Rampa, Pracownik, Magazyn, Polaczenia.\n";
                 break;
                 }
+            current_flag=L;
+            ptr=0;
 
             try
                 {
                 if(f!=0)                //jesli nie rozpoczyna sie od poczatku wiersza
                     {
-                    error=veryfi_padding(line,0,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
+                    error=veryfi_padding(line,ptr,f);     //sprawdzamy czy wypelnieniem sa spacje i tabulacje
                     if(error!="")
-                        throw "format";
+                        throw except="format";
                     }
 
                 ptr=f+link.length();
@@ -613,144 +669,156 @@ bool loadElementsFromFile(istream& in)
                 /******************/
                 Deliverer* deliverer=nullptr;
 
-                if(f=line.find(src_ramp,ptr))  //src==ramp-
+                if(std::string::npos!=(f=line.find(src_ramp,ptr)))  //src==ramp-
                     {
                      if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int id=std::stoi(&(line[f+src_ramp.length()]),ptr); //wyciagniecie id z napisu
+                    int id=std::stoi(&(line[f+src_ramp.length()]),&ptr); //wyciagniecie id z napisu
                     ptr+=f+src_ramp.length();
 
                     deliverer=findRamp(id);
                     }
-                else if(f=line.find(src_dest_worker,ptr)) //src==worker-
+                else if(std::string::npos!=(f=line.find(src_dest_worker,ptr))) //src==worker-
                     {
                      if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int id=std::stoi(&(line[f+src_dest_worker.length()]),ptr); //wyciagniecie id z napisu
+                    int id=std::stoi(&(line[f+src_dest_worker.length()]),&ptr); //wyciagniecie id z napisu
                     ptr+=f+src_dest_worker.length();
 
                     deliverer=findWorker(id);
                     }
                 else
-                    throw "blad";
+                    throw except="blad zrodla polaczenia";
 
                 if(!deliverer)
-                    throw "blad zrodla polaczenia";
+                    throw except="nieznaleziono nadawcy";
 
                 /********************/
 
-
-                if(f=line.find(dest,ptr))          //czy kontynuacja od ptr zawiera lancuch dest
+                if(std::string::npos!=(f=line.find(dest,ptr)))          //czy kontynuacja od ptr zawiera lancuch dest
                     {
                     if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
                     ptr=f+dest.length();
                     }
                 else
-                    throw "blad";
+                    throw except="blad";
 
                 /*******************/
 
                 Receiver* receiver=nullptr;
 
-                if(f=line.find(dest_warehouse,ptr))  //dest==wstorehouse-
+                if(std::string::npos!=(f=line.find(dest_warehouse,ptr)))  //dest==wstorehouse-
                     {
                      if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int id=std::stoi(&(line[f+dest_warehouse.length()]),ptr); //wyciagniecie id z napisu
+                    int id=std::stoi(&(line[f+dest_warehouse.length()]),&ptr); //wyciagniecie id z napisu
                     ptr+=f+dest_warehouse.length();
 
                     receiver=findWarehouse(id);
                     }
-                else if(f=line.find(src_dest_worker,ptr)) //dest==worker-
+                else if(std::string::npos!=(f=line.find(src_dest_worker,ptr))) //dest==worker-
                     {
                      if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    int id=std::stoi(&(line[f+src_dest_worker.length()]),ptr); //wyciagniecie id z napisu
+                    int id=std::stoi(&(line[f+src_dest_worker.length()]),&ptr); //wyciagniecie id z napisu
                     ptr+=f+src_dest_worker.length();
 
                     receiver=findWorker(id);
                     }
                 else
-                    throw "blad";
+                    throw except="blad konca polaczenia";
 
                 if(!receiver)
-                    throw "blad konca polaczenia";
+                    throw except="nieznaleziono odbiorcy";
 
                 /******************************/
                 double p=0;
 
-                if(f=line.find(probability,ptr))  // p=
+                if(std::string::npos!=(f=line.find(probability,ptr)))  // p=
                     {
                      if(f!=ptr)              //jesli nie zaczyna sie od razu
                         {
                         error=veryfi_padding(line,ptr,f);
                         if(error!="")
-                            throw "format";
+                            throw except="format";
                         }
 
-                    p=std::stoi(&(line[f+probability.length()]),ptr); //wyciagniecie wartosci prawdopodobienstwa poloczenia z napisu
-                    ptr+=f+dest_warehouse.length();
+                    p=std::stod(&(line[f+probability.length()]),&ptr); //wyciagniecie wartosci prawdopodobienstwa poloczenia z napisu
+                    ptr+=f+probability.length();
                     }
                 else
-                    throw "blad prawdopodobienstwa";
+                    throw except="blad prawdopodobienstwa";
 
                 /***********************/
                 if(line[ptr]!='\0')
-                    throw "dodatkowe znaki na koncu";
+                    throw except="dodatkowe znaki na koncu";
 
                 /**********************/
 
-                if(deliverer->addReceiver(deliverer,p))
-                        if(!receiver->addDeliverer(deliverer))
-                            deliverer->removeReceiver(receiver);
+                if(receiver->addDeliverer(deliverer))
+                    {
+                    if(!deliverer->addReceiver(receiver,p))
+                        deliverer->removeReceiver(receiver);
+                    }
                 else
-                    throw "blad dodawania polaczenia w wezlach";
+                    throw except="blad dodawania polaczenia w wezlach";
                 }
             catch(string s)
                 {
-                if(s=="format")
-                    error+="w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else if(s=="blad")
-                    error=s+"w wierszu\n"+to_string(line_number)+": "+line+'\n';
-                else
-                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
 
+                if(s=="format")
+                    error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else if(s=="blad")
+                    error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                else
+                    error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+
+                break;
+                }
+             catch(char* ch)
+                {
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad:\n";
+                error+=ch;
+                error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
             catch(...)
                 {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
-                break;
-                }
-            else
-                {
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+": "+line+'\n';
+                string st(ptr+1,' ');
+                st[ptr]='^';
+
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
                 break;
                 }
 
@@ -758,16 +826,22 @@ bool loadElementsFromFile(istream& in)
             }
         else
             {
-            error="\nnieznany blad w wierszu:\n"+to_string(line_number)+'\n'+line+'\n';
+            string st(ptr+1,' ');
+            st[ptr]='^';
+
+            error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr)+":\n"+line+"\n"+st;
+            break;
             }
 
+        ptr=0;
         line_number++;          //aktualna wczytana linia juz nastepna
         }
 
      if(error!="")
             {
+            print();
             removeAllNodes();
-            cout<<error;
+            std::cout<<'\n'<<error;
             return false;
             }
 
@@ -775,11 +849,44 @@ bool loadElementsFromFile(istream& in)
     return true;
     }
 
+/***********wyswietlanie***************/
+
+void Network::print()
+    {
+    std::cout<<"\n\nRamp:";
+
+    for(Ramp* x : list_of_Ramps)
+        {
+        std::cout<<"\n\nID: "<<x->getID()<<"\ttime of delivery: "<<x->getTimeOfDelivery()<<"\tadress: "<<x<<"\n\tOdbiorcy: ";
+        for(auto y : x->receiverProbability())
+            std::cout<<"\n\treceiver adress: "<<y->receiver<<"\t probability"<<y->probability;
+        }
+
+    std::cout<<"\n\nWorker: ";
+
+    for(Worker* x : list_of_Workers)
+        {
+        std::cout<<"\nID: "<<x->getID()<<"\tPROCESSING_TIME : "<<x->getPROCESSING_TIME()<<"\tqueue type: "<<x->type()<<"\tadress: "<<x<<"\n\tOdbiorcy: ";
+        for(auto y : x->receiverProbability())
+            std::cout<<"\n\n\treceiver adress: "<<y->receiver<<"\t probability"<<y->probability;
+
+        std::cout<<"\n\tDostawcy:";
+        for(auto y : x->listOfDeliverer())
+            std::cout<<"\n\tdeliverer id: "<<y->getID()<<"\tadress: "<<x;
+        }
+
+    std::cout<<"\n\nWarehouse: ";
+
+    for(Warehouse* x : list_of_Warehouses)
+        {
+        std::cout<<"\n\nID: "<<x->getID()<<"\tadress: "<<x<<"\n\tDostawcy: ";
+
+        for(auto y : x->listOfDeliverer())
+            std::cout<<"\n\tdeliverer id: "<<y->getID()<<"\tadress: "<<x;
+        }
 
 
-
-
-
+    }
 
 
 

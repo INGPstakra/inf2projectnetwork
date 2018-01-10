@@ -126,7 +126,7 @@ class Worker : public Deliverer, public Receiver
         static vector<int> number_of_Workers;       //vector z ID
         QueueStack* type_of_taking_products;        //obiekt typu przechowywania
         Product* product_in_processing=nullptr;     //aktualny przetwarzany product
-		int time_of_processing=0;                   //czas przetwarzania aktualnego produktu<=PROCESSING_TIME
+		int time_of_processing;                   //czas przetwarzania aktualnego produktu<=PROCESSING_TIME
 
     public:
         Worker(QueueStack* type, int _PROCESSING_TIME=1, int id=0);
@@ -135,6 +135,7 @@ class Worker : public Deliverer, public Receiver
         virtual Product* removeProduct() override;
         virtual bool takeProduct(Product* product);
         virtual bool giveProduct() override;
+        int getPROCESSING_TIME() {return PROCESSING_TIME;}
         int timeOfProcessing() {return time_of_processing;}
         string type();
         virtual void addTimeInProducts() override;/******/
