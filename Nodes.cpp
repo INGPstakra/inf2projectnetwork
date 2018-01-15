@@ -391,8 +391,11 @@ bool Worker::addProduct(Product* product)
 Product* Worker::removeProduct()
     {
     if(product_in_processing)
-        return product_in_processing;
-
+		{
+        time_of_processing=0;
+		return product_in_processing;
+		}
+		
     if(type_of_taking_products)
         return type_of_taking_products->pop(list_of_products);
 
@@ -412,6 +415,7 @@ Worker::Worker(QueueStack* type, int _PROCESSING_TIME, int id)
         PROCESSING_TIME=abs(_PROCESSING_TIME);
 
     type_of_taking_products=type;
+	time_of_processing=0;
 
     if(id<=0)
         setID(number_of_Workers);
