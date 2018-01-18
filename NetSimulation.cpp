@@ -153,7 +153,7 @@ bool Simulation::startSimulation(Network* net,Report& rep)
 		createAll(time,net);
 		sendAll(net);
 		processAll(net);
-		rep.report(net,std::cout,report_at_cycle,time);
+		rep.report(net,report_at_cycle,time);
 	}
 	finishSimulation(net);
 	}
@@ -177,14 +177,12 @@ bool raportyes(int time,const vector<int>& report_cycles)
 	return false;
 }
 
-bool Report::report(const Network* net,ostream & out,const vector<int>& report_cycles,int time)
+bool Report::report(const Network* net,const vector<int>& report_cycles,int time)
 {
 	int end;
 	if(raportyes(time,report_cycles))
 	{
 		allReports(net);
-		end=list_of_reports.size()-1;
-		out<<*(list_of_reports[end]);
 		return true;
 	}
 	return false;
@@ -218,6 +216,19 @@ string* Report::allReports(const Network* net)
 	list_of_reports.push_back(new string(a));
 	end=list_of_reports.size()-1;
 	return list_of_reports[end];
+}
+
+string* Report::getReport(unsigned int iterator)
+{
+	if(iterator<list_of_reports.size()) return list_of_reports[iterator];
+	else return nullptr;
+}
+
+string& Report::print(unsigned int iterator)
+{
+	if(iterator<list_of_reports.size()) return *(list_of_reports[iterator]);
+	string a="nie w³aœciwy iterator";
+	return a;
 }
 
 /*********ReportFramework*********/

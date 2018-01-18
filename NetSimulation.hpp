@@ -20,14 +20,18 @@ class Report
     private:
         vector<string*> list_of_reports;
 		
-    public:
-        virtual string* addReport(Ramp* ramp,const Network* net) =0;
+		virtual string* addReport(Ramp* ramp,const Network* net) =0;
         virtual string* addReport(Worker* worker,const Network* net)=0;
         virtual string* addReport(Warehouse* warehouse)=0;
         virtual string* addReport(Product* product)=0;
         string* allReports(const Network* net);
+        
+    public:
+    	
         bool removeAll();
-        bool report(const Network* net,ostream & out,const vector<int>& report_cycles,int time);
+        string* getReport(unsigned int iterator);
+        string& print(unsigned int iterator);
+        bool report(const Network* net,const vector<int>& report_cycles,int time);
     };
 	
 class ReportFramework : public Report
