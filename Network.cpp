@@ -3,6 +3,7 @@
 LIFO lifo;
 FIFO fifo;
 
+using std::to_string;
 /************dodawanie wezla**********/
 
 bool Network::addRamp(Ramp* ramp)

@@ -495,10 +495,17 @@ bool Worker::giveProduct()              // przekazanie produktu
         }
     }
 
-std::string Worker::type()
+string Worker::type()
     {
-    return (type_of_taking_products->type());
+    	string a=type_of_taking_products->type();
+    	return a;
     }
+
+int Worker::IDOfProcessingProduct()
+{
+	if(product_in_processing==nullptr) return 0;
+	else return this->product_in_processing->getID();
+}
 
 void Worker::addTimeInProducts()
     {
