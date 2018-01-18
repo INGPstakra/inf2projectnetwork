@@ -15,7 +15,41 @@ using std::string;
 using std::ostream;
 using std::istream;
 
-
+class Report
+    {
+    private:
+        vector<string*> list_of_reports;
+		
+    public:
+        virtual string* addReport(Ramp* ramp,const Network* net) =0;
+        virtual string* addReport(Worker* worker,const Network* net)=0;
+        virtual string* addReport(Warehouse* warehouse)=0;
+        virtual string* addReport(Product* product)=0;
+        string* allReports(const Network* net);
+        bool removeAll();
+        bool report(const Network* net,ostream & out,const vector<int>& report_cycles,int time);
+    };
+	
+class ReportFramework : public Report
+	{
+	public:
+		virtual string* addReport(Ramp* ramp,const Network* net) override;
+        virtual string* addReport(Worker* worker,const Network* net) override;
+        virtual string* addReport(Warehouse* warehouse) override;
+        virtual string* addReport(Product* product) override;
+	
+	};
+	
+class ReportState : public Report
+	{
+	public:
+		virtual string* addReport(Ramp* ramp,const Network* net) override;
+        virtual string* addReport(Worker* worker,const Network* net) override;
+        virtual string* addReport(Warehouse* warehouse) override;
+        virtual string* addReport(Product* product) override;
+	
+	};
+	
 class Simulation
     {
     private:
@@ -28,47 +62,16 @@ class Simulation
         bool createAll(int time,Network* net);
         void processAll(Network* net);
 
-
-		bool isWarehouse(ReceiverAndProbability* testingobject,Network* net);
 		
     public:
         Simulation(unsigned int _number_of_cycles,vector<int>& _report_at_cycle);
         Simulation(unsigned int _number_of_cycles,unsigned int period=0);
-        bool startSimulation(Network* net);
+        bool startSimulation(Network* net,Report& rep);
         bool finishSimulation(Network* net);
     };
 
 
-/*class Report
-    {
-    private:
-        vector<string*> list_of_reports;
-
-    public:
-        string* addReport(Ramp* ramp);
-        string* addReport(Worker* worker);
-        string* addReport(Warehouse* warehouse);
-        string* addReport(Product* product);
-        string* allReports();
-        bool removeAll();
-        virtual bool report()=0;
-    };
 	
-	class ReportFramework : public Report
-	{
-	public:
-		virtual bool report(const Network* net,ostream & out) override;
-	
-	};
-	
-	class ReportState : public Report
-	{
-	public:
-		virtual bool report(const Network* net,ostream & out) override;
-	
-	};
-	
-	*/
 
 #endif // NETSIMULATION_HPP
 

@@ -58,12 +58,16 @@ class Node : public Element
     {
     protected:
         vector<Product*> list_of_products;
-
+		
+		
     public:
         //~Node();
+        int IdOfProduct(int iterator){ return list_of_products[iterator]->getID();}
         int numberOfProducts() {return list_of_products.size();}
         virtual bool addProduct(Product* product);        //def. w worker
         virtual Product* removeProduct();    //def. w  worker
+        
+        friend class Report;
     };
 
 
@@ -102,6 +106,7 @@ class Receiver
         bool removeDeliverer();
         void removeFromDeliverer();  /******************************/
         virtual bool takeProduct(Product* product)=0;
+        virtual int getID2()=0;
         int numberOfDeliverer() {return list_of_deliverer.size();}
         const std::vector<Deliverer*> & listOfDeliverer(){return list_of_deliverer;}
     };
@@ -129,7 +134,7 @@ class Worker : public Deliverer, public Receiver
         QueueStack* type_of_taking_products;        //obiekt typu przechowywania
         Product* product_in_processing=nullptr;     //aktualny przetwarzany product
 		int time_of_processing;                   //czas przetwarzania aktualnego produktu<=PROCESSING_TIME
-
+		
     public:
         Worker(QueueStack* type, int _PROCESSING_TIME=1, int id=0);
         ~Worker();
@@ -137,11 +142,15 @@ class Worker : public Deliverer, public Receiver
         virtual Product* removeProduct() override;
         virtual bool takeProduct(Product* product);
         virtual bool giveProduct() override;
+        int IDOfProcessingProduct();
         int getPROCESSING_TIME() {return PROCESSING_TIME;}
         int timeOfProcessing() {return time_of_processing;}
         void addTimeOfProcessing() {time_of_processing++;this->addTimeInProducts();}
         string type();
         virtual void addTimeInProducts() override;/******/
+        virtual int getID2() override {return ID;}
+        
+        friend class Report;
     };
 
 class Warehouse : public Node, public Receiver
@@ -153,6 +162,7 @@ class Warehouse : public Node, public Receiver
         Warehouse(int id=0);
         ~Warehouse();
         virtual bool takeProduct(Product* product) override;
+        virtual int getID2() override {return ID;}
     };
 
 

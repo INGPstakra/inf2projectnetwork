@@ -27,6 +27,8 @@ class Network
 
 
     public:
+    	
+    	
         bool addRamp(Ramp* ramp);
         bool addWorker(Worker* worker);
         bool addWarehouse(Warehouse* warehouse);
@@ -55,7 +57,8 @@ class Network
         bool saveElementsToStream(ostream& out);
 
        friend class Simulation;
-//        friend class Report;
+       friend class Report;
+       friend bool isWarehouse(ReceiverAndProbability* testingobject,const Network* net);
     };
 
 string veryfi_padding(string line, std::string::size_type & pos_start, std::string::size_type pos_end);//zwraca "" gdy zawiera tylko spacje i tabulacje, inaczej "Zly format"
