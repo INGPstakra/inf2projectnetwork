@@ -156,37 +156,47 @@ void Network::removeAllNodes()
     {
     try
         {
+        Product* p=nullptr;
+        clearAllNodes();
+
         for(Ramp* x : list_of_Ramps)
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-
-            delete x;
+            try
+                {
+                delete x;
+                }
+            catch(...)
+                {
+                continue;
+                }
             }
         list_of_Ramps.clear();
 
         for(Worker* x : list_of_Workers)
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-
-            delete x;
+            try
+                {
+                delete x;
+                }
+            catch(...)
+                {
+                continue;
+                }
             }
         list_of_Workers.clear();
 
         for(Warehouse* x : list_of_Warehouses)
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
+            try
+                {
+                delete x;
+                }
+            catch(...)
+                {
+                continue;
+                }
             }
         list_of_Warehouses.clear();
-        }
-    catch(string s)
-        {
-        std::cout<<"\nblad usuwania produktow lub wezlow\n"<<s;
         }
     catch(...)
         {
@@ -198,30 +208,46 @@ void Network::clearAllNodes()
     {
     try
         {
+        Product* p=nullptr;
+
         for(Ramp* x : list_of_Ramps)
-            {
-            Product* p=nullptr;
             while(p=x->removeProduct())
-                delete p;
-            }
+                {
+                try
+                    {
+                    delete p;
+                    }
+                catch(...)
+                    {
+                    continue;
+                    }
+                }
 
         for(Worker* x : list_of_Workers)
-            {
-            Product* p=nullptr;
             while(p=x->removeProduct())
-                delete p;
-            }
+                {
+                try
+                    {
+                    delete p;
+                    }
+                catch(...)
+                    {
+                    continue;
+                    }
+                }
 
         for(Warehouse* x : list_of_Warehouses)
-            {
-            Product* p=nullptr;
             while(p=x->removeProduct())
-                delete p;
-            }
-        }
-    catch(string s)
-        {
-        std::cout<<"\nblad usuwania produktow\n"<<s;
+                {
+                try
+                    {
+                    delete p;
+                    }
+                catch(...)
+                    {
+                    continue;
+                    }
+                }
         }
     catch(...)
         {
