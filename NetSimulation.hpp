@@ -56,14 +56,13 @@ class Simulation
         int number_of_cycles;
         vector<int> report_at_cycle;
 		
-		
-        bool verify(Network* net);
         bool sendAll(Network* net);
         bool createAll(int time,Network* net);
         void processAll(Network* net);
 
 		
     public:
+        bool verify(Network* net);
         Simulation(unsigned int _number_of_cycles,vector<int>& _report_at_cycle);
         Simulation(unsigned int _number_of_cycles,unsigned int period=0);
         bool startSimulation(Network* net,Report& rep);
