@@ -219,7 +219,7 @@ bool Deliverer::setProbability(double* probability_tab, int length)
             return true;
             }
         }
-    catch(string s)
+    catch(...)
         {
         return false;
         }
@@ -395,7 +395,7 @@ Product* Worker::removeProduct()
         time_of_processing=0;
 		return product_in_processing;
 		}
-		
+
     if(type_of_taking_products)
         return type_of_taking_products->pop(list_of_products);
 
