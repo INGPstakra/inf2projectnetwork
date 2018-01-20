@@ -154,105 +154,60 @@ Warehouse* Network::removeWarehouse()
 /************usuwanie wszystkiego************/
 void Network::removeAllNodes()
     {
-    try
+    for(Ramp* x : list_of_Ramps)
         {
-        Product* p=nullptr;
-        clearAllNodes();
-
-        for(Ramp* x : list_of_Ramps)
+        try
             {
-            try
-                {
-                delete x;
-                }
-            catch(...)
-                {
-                continue;
-                }
+            x->deleteAllProducts();
+            delete x;
             }
-        list_of_Ramps.clear();
-
-        for(Worker* x : list_of_Workers)
+        catch(...)
             {
-            try
-                {
-                delete x;
-                }
-            catch(...)
-                {
-                continue;
-                }
+            continue;
             }
-        list_of_Workers.clear();
-
-        for(Warehouse* x : list_of_Warehouses)
-            {
-            try
-                {
-                delete x;
-                }
-            catch(...)
-                {
-                continue;
-                }
-            }
-        list_of_Warehouses.clear();
         }
-    catch(...)
+    list_of_Ramps.clear();
+
+    for(Worker* x : list_of_Workers)
         {
-        std::cout<<"\nblad usuwania produktow lub wezlow\n";
+        try
+            {
+            x->deleteAllProducts();
+            delete x;
+            }
+        catch(...)
+            {
+            continue;
+            }
         }
+    list_of_Workers.clear();
+
+    for(Warehouse* x : list_of_Warehouses)
+        {
+        try
+            {
+            x->deleteAllProducts();
+            delete x;
+            }
+        catch(...)
+            {
+            continue;
+            }
+        }
+    list_of_Warehouses.clear();
     }
 
 void Network::clearAllNodes()
     {
-    try
-        {
-        Product* p=nullptr;
 
-        for(Ramp* x : list_of_Ramps)
-            while(p=x->removeProduct())
-                {
-                try
-                    {
-                    delete p;
-                    }
-                catch(...)
-                    {
-                    continue;
-                    }
-                }
+    for(Ramp* x : list_of_Ramps)
+        x->deleteAllProducts();
 
-        for(Worker* x : list_of_Workers)
-            while(p=x->removeProduct())
-                {
-                try
-                    {
-                    delete p;
-                    }
-                catch(...)
-                    {
-                    continue;
-                    }
-                }
+    for(Worker* x : list_of_Workers)
+        x->deleteAllProducts();
 
-        for(Warehouse* x : list_of_Warehouses)
-            while(p=x->removeProduct())
-                {
-                try
-                    {
-                    delete p;
-                    }
-                catch(...)
-                    {
-                    continue;
-                    }
-                }
-        }
-    catch(...)
-        {
-        std::cout<<"\nblad usuwania produktow\n";
-        }
+    for(Warehouse* x : list_of_Warehouses)
+        x->deleteAllProducts();
     }
 
 
@@ -343,16 +298,21 @@ bool Network::addLink(Deliverer* deliverer, Receiver* receiver, double probabili
 
 bool Network::removeLink(Deliverer* deliverer, Receiver* receiver)
     {
+    bool removed=false;
+
     if(!deliverer && !receiver)
-        return false;
+        return removed;
 
     if(deliverer)
-        deliverer->removeReceiver(receiver);
+        removed=deliverer->removeReceiver(receiver);
 
     if(receiver)
-        receiver->removeDeliverer(deliverer);
+        {
+        if(receiver->removeDeliverer(deliverer))
+            removed=true;
+        }
 
-    return true;
+    return removed;
     }
 
 /***********wczytywanie********************/
@@ -858,9 +818,9 @@ bool Network::saveElementsToStream(ostream& out)
                     if(y)                                   //zapisujemy do bufora aby pozniej zapisac na koncu pliku
                         {
                         if(list_of_Ramps.end()!=std::find(list_of_Ramps.begin(),list_of_Ramps.end(),y))
-                            buf<<link<<src_ramp<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                            buf<<link<<src_ramp<<y->getID()<<dest<<dest_warehouse<<x->getID()<<probability<<y->getProbability(x)<<endl;
                         else if(list_of_Workers.end()!=std::find(list_of_Workers.begin(),list_of_Workers.end(),y))
-                            buf<<link<<src_dest_worker<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                            buf<<link<<src_dest_worker<<y->getID()<<dest<<dest_warehouse<<x->getID()<<probability<<y->getProbability(x)<<endl;
                         }
 
                 }

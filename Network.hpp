@@ -3,7 +3,7 @@
 
 #include "QueueStack.hpp"
 #include "Nodes.hpp"
-//#include "NetSimulation.hpp"
+#include "NetSimulation.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -27,8 +27,8 @@ class Network
 
 
     public:
-    	
-    	
+
+
         bool addRamp(Ramp* ramp);
         bool addWorker(Worker* worker);
         bool addWarehouse(Warehouse* warehouse);

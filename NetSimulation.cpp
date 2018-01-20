@@ -4,11 +4,11 @@
 Simulation::Simulation(unsigned int _number_of_cycles,vector<int>& _report_at_cycles)
 {
 	number_of_cycles=_number_of_cycles;
-	
-	if(number_of_cycles!=0 && _report_at_cycles.size()!=0) 
+
+	if(number_of_cycles!=0 && _report_at_cycles.size()!=0)
 	{
 		std::sort(_report_at_cycles.begin(),_report_at_cycles.end()); //sortowanie wektora znaczników raportu
-		
+
 		if(_report_at_cycles[_report_at_cycles.size()-1]<=_number_of_cycles) //sprawdzanie maksimum wektora
 		{
 			_report_at_cycles.erase(std::unique(_report_at_cycles.begin(),_report_at_cycles.end()),_report_at_cycles.end());  //usuwanie duplikatów
@@ -20,7 +20,7 @@ Simulation::Simulation(unsigned int _number_of_cycles,vector<int>& _report_at_cy
 Simulation::Simulation(unsigned int _number_of_cycles,unsigned int period)
 {
 	number_of_cycles=_number_of_cycles;
-	
+
 	if(number_of_cycles!=0 && period>0 && period<number_of_cycles)  //tworzenie wektora znaczników raportu dla podanego okresu
 	{
 		for(int i=0;i<number_of_cycles/period;i++)
@@ -30,11 +30,11 @@ Simulation::Simulation(unsigned int _number_of_cycles,unsigned int period)
 	}
 }
 
-typedef struct testedlist
+typedef struct TestedLlist
     {
     Worker* receiver;
     bool goodconection;
-   }testedlist;
+   }TestedList;
 
 bool isWarehouse(ReceiverAndProbability* testingobject,const Network* net)
 {
@@ -46,7 +46,7 @@ bool isWarehouse(ReceiverAndProbability* testingobject,const Network* net)
 	return false;
 }
 
-int badConection(vector<testedlist> list)
+int badConection(vector<TestedList> list)
 {
 	int suma=0;
 	for(int i=0;i<list.size();i++)
@@ -71,7 +71,7 @@ bool Simulation::verify(Network* net)
 		}
 		if(suma!=1) return false;
 	}
-	vector<testedlist> list;
+	vector<TestedList> list;
 	int i=0;
 	for(auto x : net->list_of_Workers)
 	{
@@ -87,11 +87,11 @@ bool Simulation::verify(Network* net)
 			if(con) isConectedToWarehouse=true;
 		}
 		if(suma!=1) return false;
-		testedlist ele;
+		TestedList ele;
 		ele.receiver=x;
 		ele.goodconection=isConectedToWarehouse;
 		list.push_back(ele);
-		
+
 	}
 	for(int x=0;x<badConection(list);x++)
 	{
@@ -153,7 +153,7 @@ bool Simulation::startSimulation(Network* net,Report& rep)
 		createAll(time,net);
 		sendAll(net);
 		processAll(net);
-		rep.report(net,std::cout,report_at_cycle,time);
+		rep.report(net,report_at_cycle,time);
 	}
 	finishSimulation(net);
 	}
@@ -177,14 +177,12 @@ bool raportyes(int time,const vector<int>& report_cycles)
 	return false;
 }
 
-bool Report::report(const Network* net,ostream & out,const vector<int>& report_cycles,int time)
+bool Report::report(const Network* net,const vector<int>& report_cycles,int time)
 {
 	int end;
 	if(raportyes(time,report_cycles))
 	{
 		allReports(net);
-		end=list_of_reports.size()-1;
-		out<<*(list_of_reports[end]);
 		return true;
 	}
 	return false;
@@ -196,32 +194,45 @@ bool Report::removeAll()
 	return true;
 }
 
-string* Report::allReports(const Network* net)
+string Report::allReports(const Network* net)
 {
 	int end;
 	int b;
-	string a="\n== LOADING RAMPS ==\n"; 
+	string a="\n== LOADING RAMPS ==\n";
 	for(auto x: net->list_of_Ramps)
 	{
-		a+=addReport(x,net)->c_str();
+		a+=addReport(x,net);
 	}
 	a+="\n== Workers ==\n";
 	for(auto x: net->list_of_Workers)
 	{
-		a+=addReport(x,net)->c_str();
+		a+=addReport(x,net);
 	}
 	a+="\n== STOREHOUSES ==\n";
 	for(auto x: net->list_of_Warehouses)
 	{
-		a+=addReport(x)->c_str();
+		a+=addReport(x);
 	}
-	list_of_reports.push_back(new string(a));
+	list_of_reports.push_back(*(new string(a)));
 	end=list_of_reports.size()-1;
 	return list_of_reports[end];
 }
 
+string Report::getReport(unsigned int iterator)
+{
+	if(iterator<list_of_reports.size()) return list_of_reports[iterator];
+	else return string("");
+}
+
+string Report::print(unsigned int iterator)
+{
+	if(iterator<list_of_reports.size()) return list_of_reports[iterator];
+	string a="nie w�a�ciwy iterator";
+	return a;
+}
+
 /*********ReportFramework*********/
-string* ReportFramework::addReport(Ramp* ramp,const Network* net)
+string ReportFramework::addReport(Ramp* ramp,const Network* net)
 {
 	std::stringstream ss;
     ss << "\nLOADING RAMP #" <<ramp->getID()<<"\nDelivery interval:"<<ramp->getTimeOfDelivery()<<"\nReceivers: \n";
@@ -236,12 +247,11 @@ string* ReportFramework::addReport(Ramp* ramp,const Network* net)
         	ss<<"Worker #"<<vctr[i]->receiver->getID2()<<" (p = "<<vctr[i]->probability<<")\n";
 		}
     }
-    string s = ss.str();
-    string* rep=&s;
-    return rep;
+
+    return ss.str();
 }
 
-string* ReportFramework::addReport(Worker* worker,const Network* net)
+string ReportFramework::addReport(Worker* worker,const Network* net)
 {
     std::stringstream ss;
 	ss << "\nWorker #" <<worker->getID()<<'\n'<<"Processing time:"<<worker->getPROCESSING_TIME()<<"\n"<<"Queue type:" <<worker->type()<<"\n"<< "Receivers:\n";
@@ -256,50 +266,44 @@ string* ReportFramework::addReport(Worker* worker,const Network* net)
         	ss<<"Worker #"<<vctr[i]->receiver->getID2()<<" (p = "<<vctr[i]->probability<<")\n";
 		}
     }
-    string s = ss.str();
-    string* rep=&s;
-    return rep;
+
+    return ss.str();
 }
 
-string* ReportFramework::addReport(Warehouse* warehouse)
+string ReportFramework::addReport(Warehouse* warehouse)
 {
 	std::stringstream ss;
     ss << "\nSTOREHOUSE #" <<warehouse->getID();
-    string s = ss.str();
-    string* rep=&s;
-    return rep;
+    return ss.str();
 }
 
-string* ReportFramework::addReport(Product* product)
+string ReportFramework::addReport(Product* product)
 {
 	std::stringstream ss;
     ss << "PRODUCT #" <<product->getID()<<"\n"<<"Time to getting to warehouse: " <<product->getTimeOfGettingWarehouse();
-    string s = ss.str();
-    string* rep=&s;
-    return rep;
+
+    return ss.str();
 }
 
 
 /*********ReportState*********/
-string* ReportState::addReport(Ramp* ramp,const Network* net) 
+string ReportState::addReport(Ramp* ramp,const Network* net)
 {
 	string a="";
-	return &a;
+	return a;
 }
 
-string* ReportState::addReport(Worker* worker,const Network* net)
+string ReportState::addReport(Worker* worker,const Network* net)
 {
 	std::stringstream ss;
     ss << "\nWorker #" <<worker->getID()<<"\n"<<"Queue: "<<"#"<<worker->IDOfProcessingProduct()<<" (pt = " <<worker->getPROCESSING_TIME()<<")";
     for(int i=0; i<worker->numberOfProducts(); i++){
         ss<<", #"<<worker->IdOfProduct(i);
     }
-    string s = ss.str();
-    string* rep=&s;
-    return rep;
+    return ss.str();
 }
 
-string* ReportState::addReport(Warehouse* warehouse)
+string ReportState::addReport(Warehouse* warehouse)
 {
 	std::stringstream ss;
     ss << "\nWarehouse #" <<warehouse->getID()<<"\n"<<"Queue: ";
@@ -309,13 +313,11 @@ string* ReportState::addReport(Warehouse* warehouse)
 		else
 		ss<<", #"<<warehouse->IdOfProduct(i);
     }
-    string s=ss.str();
-    string* rep=&s;
-    return rep;
+    return ss.str();
 }
 
-string* ReportState::addReport(Product* product)
+string ReportState::addReport(Product* product)
 {
 	string a="";
-	return &a;
+	return a;
 }
