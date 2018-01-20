@@ -3,7 +3,7 @@
 
 #include "QueueStack.hpp"
 #include "Nodes.hpp"
-//#include "NetSimulation.hpp"
+#include "NetSimulation.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -16,7 +16,7 @@ using std::string;
 using std::ifstream;
 using std::ostream;
 using std::istream;
-using std::to_string;
+using std::string;
 
 class Network
     {
@@ -27,6 +27,8 @@ class Network
 
 
     public:
+
+
         bool addRamp(Ramp* ramp);
         bool addWorker(Worker* worker);
         bool addWarehouse(Warehouse* warehouse);
@@ -54,8 +56,9 @@ class Network
         bool loadElementsFromStream(istream& in);
         bool saveElementsToStream(ostream& out);
 
-//        friend class Simulation;
-//        friend class Report;
+       friend class Simulation;
+       friend class Report;
+       friend bool isWarehouse(ReceiverAndProbability* testingobject,const Network* net);
     };
 
 string veryfi_padding(string line, std::string::size_type & pos_start, std::string::size_type pos_end);//zwraca "" gdy zawiera tylko spacje i tabulacje, inaczej "Zly format"

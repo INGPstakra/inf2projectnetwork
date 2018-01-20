@@ -69,6 +69,27 @@ Product* Node::removeProduct()
 
     return nullptr;
     }
+void Node::deleteAllProducts()
+    {
+    for(auto x : list_of_products)
+        {
+        try
+            {
+            delete x;
+            }
+        catch(...)
+            {
+            continue;
+            }
+        }
+
+    list_of_products.clear();
+    }
+
+Node::~Node()
+    {
+    deleteAllProducts();
+    }
 
 
 /**********DELIVERER****************/
@@ -165,7 +186,7 @@ bool Deliverer::removeReceiver(Receiver* receiver)
 
     double removed_probability;
 
-    for(int i=0; i<list_of_receivers.size();++i)
+    for(unsigned int i=0; i<list_of_receivers.size();++i)
         if(list_of_receivers[i]->receiver==receiver)
             {
             removed_probability=list_of_receivers[i]->probability;
@@ -200,43 +221,44 @@ bool Deliverer::removeReceiver()
 
     }
 
-bool Deliverer::setProbability(double* probability_tab, int length)
+bool Deliverer::setProbability(double* probability_tab,unsigned int length)
     {
     try
         {
         if(length==list_of_receivers.size() || probability_tab!=nullptr)
             {
             double sum=0;
-            for(int i=0;i<length;++i)
+            for(unsigned int i=0;i<length;++i)
                 sum+=probability_tab[i];
 
             if(sum!=1)
                 return false;
 
-            for(int i=0;i<length;++i)
+            for(unsigned int i=0;i<length;++i)
                 (list_of_receivers[i])->probability=probability_tab[i];
 
             return true;
             }
         }
-    catch(string s)
+    catch(...)
         {
         return false;
         }
+    return false;
     }
 
 Receiver* Deliverer::randomReceiver()
     {
     double random=((double)std::rand())/RAND_MAX, sum=0;
 
-    int ending=random*8;
-	for(int i=0;i<ending;++i)			//petla o losowej liczbie iteracji
+    unsigned int ending=random*8;
+	for(unsigned int i=0;i<ending;++i)			//petla o losowej liczbie iteracji
 		{
 		std::srand((random*(double)time(NULL)));		//losowa wartosc seed
 		random=((double)std::rand())/RAND_MAX;			//losowa wartośc 0 do 1
 		}
 
-    for(int i=0;i<list_of_receivers.size();++i)
+    for(unsigned int i=0;i<list_of_receivers.size();++i)
         {
         sum+=list_of_receivers[i]->probability;	//dodajemy kolejne prawdopodobiñstwa
 
@@ -286,7 +308,7 @@ bool Receiver::removeDeliverer(Deliverer* deliverer)
     if(!deliverer)
         return false;
 
-    for(int i=0; i<list_of_deliverer.size();i++)
+    for(unsigned int i=0; i<list_of_deliverer.size();i++)
         {
         if(list_of_deliverer[i]==deliverer)
             {
@@ -343,15 +365,16 @@ Ramp::Ramp(int _TIME_OF_DELIVERY,int id)
 
 Ramp::~Ramp()
     {
-    for(int i=0;i<number_of_Ramps.size();++i)
+    for(unsigned int i=0;i<number_of_Ramps.size();++i)
         if(number_of_Ramps[i]==this->ID)
             {
             number_of_Ramps.erase(number_of_Ramps.begin()+i);
 
             removeFromReceiver();
 
-            return;
+            break;
             }
+    deleteAllProducts();
     }
 
 bool Ramp::createProduct(int time)
@@ -395,7 +418,7 @@ Product* Worker::removeProduct()
         time_of_processing=0;
 		return product_in_processing;
 		}
-		
+
     if(type_of_taking_products)
         return type_of_taking_products->pop(list_of_products);
 
@@ -433,7 +456,7 @@ Worker::Worker(QueueStack* type, int _PROCESSING_TIME, int id)
 
 Worker::~Worker()
     {
-    for(int i=0;i<number_of_Workers.size();++i)
+    for(unsigned int i=0;i<number_of_Workers.size();++i)
         if(number_of_Workers[i]==this->ID)
             {
             number_of_Workers.erase(number_of_Workers.begin()+i);
@@ -441,8 +464,9 @@ Worker::~Worker()
             removeFromDeliverer();
             removeFromReceiver();
 
-            return;
+            break;
             }
+    Worker::deleteAllProducts();
     }
 
 bool Worker::giveProduct()              // przekazanie produktu
@@ -495,10 +519,16 @@ bool Worker::giveProduct()              // przekazanie produktu
         }
     }
 
-std::string Worker::type()
+string Worker::type()
     {
-    return (type_of_taking_products->type());
+    	return type_of_taking_products->type();
     }
+
+int Worker::IDOfProcessingProduct()
+{
+	if(product_in_processing==nullptr) return 0;
+	else return this->product_in_processing->getID();
+}
 
 void Worker::addTimeInProducts()
     {
@@ -507,6 +537,23 @@ void Worker::addTimeInProducts()
 
     if(product_in_processing)
         product_in_processing->addTimeOfGettingWarehouse();
+    }
+
+void Worker::deleteAllProducts()
+    {
+    Node::deleteAllProducts();
+    if(!product_in_processing)
+        {
+        try
+            {
+            delete product_in_processing;
+            product_in_processing=nullptr;
+            }
+        catch(...)
+            {
+
+            }
+        }
     }
 
 /***********WAREHOUSE***********/
@@ -528,15 +575,16 @@ Warehouse::Warehouse(int id)
 
 Warehouse::~Warehouse()
     {
-    for(int i=0;i<number_of_Warehouse.size();++i)
+    for(unsigned int i=0;i<number_of_Warehouse.size();++i)
         if(number_of_Warehouse[i]==this->ID)
             {
             number_of_Warehouse.erase(number_of_Warehouse.begin()+i);
 
             removeFromDeliverer();
 
-            return;
+            break;
             }
+    deleteAllProducts();
     }
 
 bool Warehouse::takeProduct(Product* product)

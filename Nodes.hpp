@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 #include <algorithm>
 #include <iterator>
 #include <cstdlib>
@@ -21,7 +22,7 @@ class LIFO;
 class FIFO;
 
 
-typedef struct receiverAndProbability
+typedef struct ReceiverAndProbability
     {
     Receiver* receiver;
     double probability;
@@ -58,11 +59,15 @@ class Node : public Element
     protected:
         vector<Product*> list_of_products;
 
+
     public:
-        //~Node();
+        ~Node();
+        int IdOfProduct(int iterator){ return list_of_products[iterator]->getID();}
         int numberOfProducts() {return list_of_products.size();}
         virtual bool addProduct(Product* product);        //def. w worker
         virtual Product* removeProduct();    //def. w  worker
+        virtual void deleteAllProducts();
+        friend class Report;
     };
 
 
@@ -82,7 +87,7 @@ class Deliverer : public Node
         bool removeReceiver(Receiver* receiver);
         bool removeReceiver();
         void removeFromReceiver();  /******************************/
-        bool setProbability(double* probability_tab, int length);   //ustawienie prawdop. z tablicy
+        bool setProbability(double* probability_tab,unsigned int length);   //ustawienie prawdop. z tablicy
         virtual bool giveProduct()=0;         //def. w ramp i worker
         int numberOfReceiver() {return list_of_receivers.size();}
         double getProbability(Receiver* receiver);
@@ -101,6 +106,7 @@ class Receiver
         bool removeDeliverer();
         void removeFromDeliverer();  /******************************/
         virtual bool takeProduct(Product* product)=0;
+        virtual int getID2()=0;
         int numberOfDeliverer() {return list_of_deliverer.size();}
         const std::vector<Deliverer*> & listOfDeliverer(){return list_of_deliverer;}
     };
@@ -136,10 +142,16 @@ class Worker : public Deliverer, public Receiver
         virtual Product* removeProduct() override;
         virtual bool takeProduct(Product* product);
         virtual bool giveProduct() override;
+        int IDOfProcessingProduct();
         int getPROCESSING_TIME() {return PROCESSING_TIME;}
         int timeOfProcessing() {return time_of_processing;}
+        void addTimeOfProcessing() {time_of_processing++;this->addTimeInProducts();}
         string type();
         virtual void addTimeInProducts() override;/******/
+        virtual int getID2() override {return ID;}
+        virtual void deleteAllProducts() override;
+
+        friend class Report;
     };
 
 class Warehouse : public Node, public Receiver
@@ -151,6 +163,7 @@ class Warehouse : public Node, public Receiver
         Warehouse(int id=0);
         ~Warehouse();
         virtual bool takeProduct(Product* product) override;
+        virtual int getID2() override {return ID;}
     };
 
 

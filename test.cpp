@@ -1,6 +1,7 @@
 #include "Nodes.hpp"
 #include "QueueStack.hpp"
 #include "Network.hpp"
+#include "NetSimulation.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -397,13 +398,18 @@ int main()
     /**********Network***************/
 
     Network net;
-
+    Simulation sim=Simulation(10,2);
+    ReportState report;
     std::ifstream plik;
     plik.open( "struct-input.txt", std::ios::in | std::ios::out );
 
     net.loadElementsFromStream(plik);
     plik.close();
     net.saveElementsToStream(std::cout);
+
+    std::cout<<"\n\n"<<sim.verify(&net)<<"\n\n";
+    sim.startSimulation(&net,report);
+
     net.removeAllNodes();
 
     net.saveElementsToStream(std::cout);

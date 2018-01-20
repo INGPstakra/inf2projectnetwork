@@ -3,6 +3,7 @@
 LIFO lifo;
 FIFO fifo;
 
+using std::to_string;
 /************dodawanie wezla**********/
 
 bool Network::addRamp(Ramp* ramp)
@@ -153,79 +154,60 @@ Warehouse* Network::removeWarehouse()
 /************usuwanie wszystkiego************/
 void Network::removeAllNodes()
     {
-    try
+    for(Ramp* x : list_of_Ramps)
         {
-        for(Ramp* x : list_of_Ramps)
+        try
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-
+            x->deleteAllProducts();
             delete x;
             }
-        list_of_Ramps.clear();
-
-        for(Worker* x : list_of_Workers)
+        catch(...)
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
+            continue;
+            }
+        }
+    list_of_Ramps.clear();
 
+    for(Worker* x : list_of_Workers)
+        {
+        try
+            {
+            x->deleteAllProducts();
             delete x;
             }
-        list_of_Workers.clear();
-
-        for(Warehouse* x : list_of_Warehouses)
+        catch(...)
             {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
+            continue;
             }
-        list_of_Warehouses.clear();
         }
-    catch(string s)
+    list_of_Workers.clear();
+
+    for(Warehouse* x : list_of_Warehouses)
         {
-        std::cout<<"\nblad usuwania produktow lub wezlow\n"<<s;
+        try
+            {
+            x->deleteAllProducts();
+            delete x;
+            }
+        catch(...)
+            {
+            continue;
+            }
         }
-    catch(...)
-        {
-        std::cout<<"\nblad usuwania produktow lub wezlow\n";
-        }
+    list_of_Warehouses.clear();
     }
 
 void Network::clearAllNodes()
     {
-    try
-        {
-        for(Ramp* x : list_of_Ramps)
-            {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-            }
 
-        for(Worker* x : list_of_Workers)
-            {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-            }
+    for(Ramp* x : list_of_Ramps)
+        x->deleteAllProducts();
 
-        for(Warehouse* x : list_of_Warehouses)
-            {
-            Product* p=nullptr;
-            while(p=x->removeProduct())
-                delete p;
-            }
-        }
-    catch(string s)
-        {
-        std::cout<<"\nblad usuwania produktow\n"<<s;
-        }
-    catch(...)
-        {
-        std::cout<<"\nblad usuwania produktow\n";
-        }
+    for(Worker* x : list_of_Workers)
+        x->deleteAllProducts();
+
+    for(Warehouse* x : list_of_Warehouses)
+        x->deleteAllProducts();
     }
 
 
@@ -316,16 +298,21 @@ bool Network::addLink(Deliverer* deliverer, Receiver* receiver, double probabili
 
 bool Network::removeLink(Deliverer* deliverer, Receiver* receiver)
     {
+    bool removed=false;
+
     if(!deliverer && !receiver)
-        return false;
+        return removed;
 
     if(deliverer)
-        deliverer->removeReceiver(receiver);
+        removed=deliverer->removeReceiver(receiver);
 
     if(receiver)
-        receiver->removeDeliverer(deliverer);
+        {
+        if(receiver->removeDeliverer(deliverer))
+            removed=true;
+        }
 
-    return true;
+    return removed;
     }
 
 /***********wczytywanie********************/
@@ -831,9 +818,9 @@ bool Network::saveElementsToStream(ostream& out)
                     if(y)                                   //zapisujemy do bufora aby pozniej zapisac na koncu pliku
                         {
                         if(list_of_Ramps.end()!=std::find(list_of_Ramps.begin(),list_of_Ramps.end(),y))
-                            buf<<link<<src_ramp<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                            buf<<link<<src_ramp<<y->getID()<<dest<<dest_warehouse<<x->getID()<<probability<<y->getProbability(x)<<endl;
                         else if(list_of_Workers.end()!=std::find(list_of_Workers.begin(),list_of_Workers.end(),y))
-                            buf<<link<<src_dest_worker<<y->getID()<<dest<<src_dest_worker<<x->getID()<<probability<<y->getProbability(x)<<endl;
+                            buf<<link<<src_dest_worker<<y->getID()<<dest<<dest_warehouse<<x->getID()<<probability<<y->getProbability(x)<<endl;
                         }
 
                 }
