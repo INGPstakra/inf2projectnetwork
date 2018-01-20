@@ -321,11 +321,11 @@ string veryfi_padding(string line, std::string::size_type & pos_start, std::stri
     {
     string error="";
 
-    for(auto i=pos_start;i<=pos_end;++i)
+    for(unsigned int i=pos_start;i<=pos_end;++i)
         if(line[i]!=' ' && line[i]!='\t')   //moze zaczynac sie spacja lub tab
             {
             error="Zly format";
-            pos_start+=i;
+            pos_start+=i-pos_start;
 
             break;
             }
@@ -390,7 +390,7 @@ bool Network::loadElementsFromStream(istream& in)
                     ptr+=f+delivery_interwal.length();          //index
 
                     /***********************/
-                    if(line[ptr]!='\0')
+                    if(""!=veryfi_padding(line,ptr,line.length()-1))
                         throw except="dodatkowe znaki na koncu";
 
                     Ramp* ra=new Ramp(time_of_delivery,id);
@@ -481,7 +481,7 @@ bool Network::loadElementsFromStream(istream& in)
 
                         /***********************/
 
-                        if(line[ptr]!='\0')
+                        if(""!=veryfi_padding(line,ptr,line.length()-1))
                             throw except="dodatkowe znaki na koncu";
 
 
@@ -519,7 +519,7 @@ bool Network::loadElementsFromStream(istream& in)
                 ptr+=f+warehouse.length();
 
                 /***********************/
-                if(line[ptr]!='\0')
+                if(""!=veryfi_padding(line,ptr,line.length()-1))
                     throw except="dodatkowe znaki na koncu";
 
                 Warehouse* storehouse=new Warehouse(id);
@@ -658,7 +658,7 @@ bool Network::loadElementsFromStream(istream& in)
                     throw except="blad prawdopodobienstwa";
 
                 /***********************/
-                if(line[ptr]!='\0')
+                if(""!=veryfi_padding(line,ptr,line.length()-1))
                     throw except="dodatkowe znaki na koncu";
 
                 /**********************/
@@ -678,7 +678,7 @@ bool Network::loadElementsFromStream(istream& in)
                 string st(ptr+1,' ');
                 st[ptr]='^';
 
-                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr)+":\n"+line+"\n"+st;
+                error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr)+":\n"+line+"\n"+st+'\n';
                 break;
                 }
             }
@@ -688,11 +688,11 @@ bool Network::loadElementsFromStream(istream& in)
             st[ptr]='^';
 
             if(s=="format")
-                error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                error+=" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st+'\n';
             else if(s=="blad")
-                error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                error=s+" w wierszu\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st+'\n';
             else
-                error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+                error="blad:\n"+s+"\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st+'\n';
 
             break;
             }
@@ -703,7 +703,7 @@ bool Network::loadElementsFromStream(istream& in)
 
             error="Nieznany blad:\n";
             error+=ch;
-            error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+            error+="\nw wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st+'\n';
             break;
             }
         catch(...)
@@ -711,7 +711,7 @@ bool Network::loadElementsFromStream(istream& in)
             string st(ptr+1,' ');
             st[ptr]='^';
 
-            error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st;
+            error="Nieznany blad w wierszu:\n"+to_string(line_number)+":"+to_string(ptr+1)+":\n"+line+"\n"+st+'\n';
             break;
             }
 
